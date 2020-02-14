@@ -1,2 +1,2 @@
-# rosreestr
-Rosreestr captcha helper
+# Росреестр
+Автоматическая подстановка чёрной капчи
