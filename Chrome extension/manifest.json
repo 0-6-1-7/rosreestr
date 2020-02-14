@@ -1,6 +1,6 @@
 {
   "name": "Помощь с капчей Росреестра",
-  "version": "1.0",
+  "version": "1.01",
   "description": "Помощь с капчей Росреестра",
   "page_action" :
   {
@@ -15,7 +15,12 @@
   },
   "content_scripts": [
    {
-     "matches": ["https://rosreestr.ru/wps/portal/*"],
+     "matches": 
+		[
+		"https://rosreestr.ru/wps/portal/online_request/*", 
+		"https://rosreestr.ru/wps/portal/p/cc_present/ir_egrn/*",
+		"https://rosreestr.ru/wps/portal/p/cc_ib_portal_services/online_request/*"
+		],
      "js": ["contentScript.js"]
    }
  ],
