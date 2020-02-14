@@ -16,7 +16,7 @@ function getBase64Image(img) {
     ctx.drawImage(img, 0, 0);
     var dataURL = canvas.toDataURL("image/png");
     return dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
-	canvas = null
+	canvas = null;
 }
 
 function base64_url_encode(url) {
@@ -24,19 +24,20 @@ function base64_url_encode(url) {
 }
 
 function getCaptcha() {
-	if (document.title.length < 1) { return; }
-	if (document.URL.indexOf("https://rosreestr.ru/wps/portal/online_request") >= 0 ||
-		document.URL.indexOf("https://rosreestr.ru/wps/portal/p/cc_ib_portal_services/online_request/") >= 0) {
-		var captcha = document.getElementById("captchaImage2");
-		var captchaField = document.getElementsByName("captchaText")[0];
-	}
-	else if (document.URL.indexOf("https://rosreestr.ru/wps/portal/p/cc_present/ir_egrn") >= 0){
-		var ibmMainContainer = document.getElementsByName("ibmMainContainer")[0];
-		if (ibmMainContainer.getElementById("gwt-uid-3") == null) { return; }
-		var captcha = ibmMainContainer.querySelector("img");
-		var captchaField = ibmMainContainer.querySelector("input");
-		ibmMainContainer.getElementById("gwt-uid-3").click();
-		ibmMainContainer.querySelector("div.v-button").focus();
+	if (document.title.length < 1) { return; } //сайт не работает
+	captcha = null;
+	var container = document.querySelector("div.content-right");
+	var imgs = container.querySelectorAll("img");
+	for (let img of imgs) { if (img.width == 180 && img.height == 50) { captcha = img; break; } }
+	if (captcha == null) { return; }
+	
+	if (document.URL.indexOf("online_request") >= 0 ||
+		document.URL.indexOf("cc_vizualisation") >= 0) {
+		var captchaField = captcha.closest("tbody").querySelector("input");
+		}
+	else if (document.URL.indexOf("cc_present/ir_egrn") >= 0 ||
+		     document.URL.indexOf("cc_present/EGRN_") >= 0) {
+		var captchaField = captcha.closest("div.v-horizontallayout").querySelector("input");
 	} 
 	else {return;}
 	if(!captcha.complete) { return; }
