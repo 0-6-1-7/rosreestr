@@ -3,7 +3,10 @@ var oldCaptchaSrc = "";
 function httpGetAsync(imgData, eleId) {
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.open("GET", "http://localhost:8111/cgi-bin/captcha.py?imgData='" + imgData + "'", true);
-	xmlHttp.onload = function() { eleId.value = this.responseText; };
+	xmlHttp.onload = function() { 
+		eleId.focus(); 
+		setTimeout(() => { eleId.value = this.responseText; }, 100);
+	}
 	xmlHttp.onerror = function() { eleId.value = "-----"; };
     xmlHttp.send(null);
 }
