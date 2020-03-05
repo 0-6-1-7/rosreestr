@@ -1,0 +1,41 @@
+{
+  "name": "Помощь с Росреестром",
+  "version": "2.1",
+  "description": "Помощь с Росреестром",
+  
+  "browser_action":
+  {
+    "default_icon": "icon-48.png",
+    "default_title": "Помощь с Росреестром",
+  	"default_popup": "popup.html"
+  },
+  
+  "permissions": ["declarativeContent", "storage", "tabs"],
+  
+  "icons": {
+    "16": "icon-16.png",
+    "48": "icon-48.png",
+    "128": "icon-128.png"
+  },
+  
+  "content_scripts": [
+   {
+     "matches": 
+		[
+		"https://rosreestr.ru/wps/portal/online_request/*", 
+		"https://rosreestr.ru/wps/portal/p/cc_ib_portal_services/online_request/*",
+		"https://rosreestr.ru/wps/portal/p/cc_present/ir_egrn/*"
+		],
+     "js": ["contentScript.js"]
+   },
+   {
+     "matches": 
+		[
+		"https://rosreestr.ru/wps/portal/p/cc_ib_portal_services/online_request/*object_data_id=*"
+		],
+     "js": ["gatherData.js"]
+   }
+ ],
+  
+  "manifest_version": 2
+}
