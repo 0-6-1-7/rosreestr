@@ -7,7 +7,7 @@ from selenium import webdriver
 ##from selenium.webdriver.support import expected_conditions as EC
 ##from selenium.webdriver.common.by import By
 
-import openpyxl
+import openpyxl, time
 
 SIpON = None
 status = 0 # состояние сайта
@@ -16,7 +16,7 @@ status = 0 # состояние сайта
 def SIpONinit():
   global SIpON
   SIpON = webdriver.Chrome()
-##  SIpON.implicitly_wait(1)
+  SIpON.implicitly_wait(1)
   SIpON.set_page_load_timeout(10)
   try:
     SIpON.get("https://rosreestr.ru/wps/portal/online_request")
@@ -99,6 +99,7 @@ def GetInfo(KN):
         r_enc = SIpON.find_element_by_id("r_enc")
         if "none" in r_enc.get_attribute("style"):
           sw_r_enc = SIpON.find_element_by_id("sw_r_enc")
+          SIpON.execute_script("arguments[0].scrollIntoView();", sw_r_enc)
           sw_r_enc.click()
       except:
         pass
@@ -133,21 +134,20 @@ wb = load_workbook(filename = 'KN.xlsx')
 ws1 = wb.worksheets[0]
 ws2 = wb.create_sheet("Sheet KN")
 
-r = 1
+r = 1 # строка в исходном списке
 t = "Кадастровый номер\tКатегория объекта\tУчтённый\tАдрес\tТип объекта\tФорма собств.\tДата последнего перехода права собств."
 tl = t.split("\t")
 for l in range(0, len(tl)):
-  ws2.cell(row = r, column = l + 1).value = tl[l]
+  ws2.cell(row = 1, column = l + 1).value = tl[l]
+cc = ws1.cell(row = r , column = 1).value
 
-r = 2
-cc = ws1.cell(row = r, column = 1).value
 while cc != None:
   t = GetInfo(cc)
   print("--------------------------------------------------------")
   print(t)
   tl = t.split("\t")
   for l in range(0, len(tl)):
-    ws2.cell(row = r, column = l + 1).value = tl[l]
+    ws2.cell(row = r + 1, column = l + 1).value = tl[l]
 ##    print(f"{l}: {tl[l - 1]}")
   cc = ws1.cell(row = r, column=1).value
   if (r - 1) % 10 == 0:
