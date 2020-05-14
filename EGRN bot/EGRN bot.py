@@ -19,7 +19,7 @@ def EGRNinit():
     EGRN.set_page_load_timeout(15)
     try:
         EGRN.get("https://rosreestr.ru/wps/portal/p/cc_present/ir_egrn")
-        EGRN.implicitly_wait(15)
+        EGRN.implicitly_wait(20)
     except:
         print("Сайт Росреестра не работает")
 ##------------------------------------------------------------##
@@ -35,42 +35,63 @@ def GetInfo():
     global wb
     global ws
     global tout
-    vapp = EGRN.find_element_by_css_selector("div.v-app")
+
+    while EGRN.find_element_by_css_selector("div.blockGrey").is_displayed():
+        time.sleep(1)
+
     KN = re.search(r"\b\d{2}:\d{2}:\d{1,7}:\d{1,}\b", EGRN.find_element_by_css_selector("div.header3").get_attribute("innerText"))[0]
     print(f"{KN} - подготовка запроса")
-    CaptchaImage = vapp.find_element_by_xpath("//img[@style='width: 180px; height: 50px;']")
-    CaptchaReload = vapp.find_element_by_xpath("//span[contains(@class,'v-button-caption') and contains(text(),'Другую картинку')]")
-    captcha = ''
-    captcha = RecognizeCaptcha(CaptchaImage)
-    while captcha == '':
-        CaptchaReload.click()
-        print('     reloading captcha image')
-        time.sleep(10)
-        captcha = RecognizeCaptcha(CaptchaImage)
+    vapp = EGRN.find_element_by_css_selector("div.v-app")
+
     Radio = vapp.find_elements_by_xpath("//input[@type='radio']")[1]
     CaptchaField = vapp.find_elements_by_xpath("//input[@type='text']")[1]
+    CaptchaReload = vapp.find_element_by_xpath("//span[contains(@class,'v-button-caption') and contains(text(),'Другую картинку')]")
     SendButton = vapp.find_element_by_xpath("//span[contains(@class,'v-button-caption') and contains(text(),'Отправить запрос')]")
+
     EGRN.execute_script("arguments[0].scrollIntoView();", Radio)
     Radio.click()
-    CaptchaField.click()
+##    print("Radio.click()", end = " ")
+    while True:
+        captcha = ""
+        CaptchaImage = vapp.find_element_by_xpath("//img[@style='width: 180px; height: 50px;']")
+        captcha = RecognizeCaptcha(CaptchaImage)
+        if captcha != "" and captcha != "44444" :
+            break
+        print("     reloading captcha image")
+        CaptchaReload.click()
+        time.sleep(10)
+        
     time.sleep(1)
-    CaptchaField.send_keys(captcha)
-    time.sleep(1)
-    SendButton.click()
-    PopUp = []
-    OK = False
-    while not OK:
-        while len(PopUp) == 0:
-            PopUp = vapp.find_elements_by_xpath("//div[@class='v-window']")
-        try:
-            NZ = ""
-            OkButton = PopUp[0].find_element_by_xpath("//span[contains(@class,'v-button-caption') and contains(text(),'Продолжить работу')]")
-            NZ = re.search(r"\d{2}\-\d{9}", PopUp[0].get_attribute("innerText"))[0]
-            if NZ != "":
-                OK = True
-        except:
-            pass
+    while True:
+        CaptchaField.click()
+##        print("CaptchaField.click()", end = " ")
+        time.sleep(1)
+        CaptchaField.send_keys(captcha)
+        time.sleep(1)
+        SendButton.click()
+##        print("wait for popup", end = " ")
+        PopUp = vapp.find_elements_by_xpath("//div[@class='v-window']")
+        OK = False
+        while True:
+##            print("+", end = " ")
+            t1 = time.time()
+            while len(PopUp) == 0 and time.time() - t1 < 60: 
+                print(".", end = " ")
+                PopUp = vapp.find_elements_by_xpath("//div[@class='v-window']")
+            if len(PopUp) != 0:
+                OkButton = PopUp[0].find_elements_by_xpath("//span[contains(@class,'v-button-caption') and contains(text(),'Продолжить работу')]")[0]
+                NZ = ""
+                NZ = re.search(r"\d{2}\-\d{9}", PopUp[0].get_attribute("innerText"))[0]
+                if NZ != "":
+                    OK = True
+                    break
+            else:
+                break
+        if OK:
+            break
+
     OkButton.click()
+##    print("OkButton.click()")
     row = ws.max_row + 1
     ws.cell(row = row, column = 1).value = KN
     ws.cell(row = row, column = 2).value = NZ
