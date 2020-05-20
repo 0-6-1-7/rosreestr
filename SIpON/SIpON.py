@@ -135,21 +135,24 @@ ws1 = wb.worksheets[0]
 ws2 = wb.create_sheet("Sheet KN")
 
 r = 1 # строка в исходном списке
-t = "Кадастровый номер\tКатегория объекта\tУчтённый\tАдрес\tТип объекта\tФорма собств.\tДата последнего перехода права собств."
+t = "Лицевой счёт\tКадастровый номер\tКатегория объекта\tУчтённый\tАдрес\tТип объекта\tФорма собств.\tДата последнего перехода права собств."
 tl = t.split("\t")
 for l in range(0, len(tl)):
   ws2.cell(row = 1, column = l + 1).value = tl[l]
 cc = ws1.cell(row = r , column = 1).value
+ls = ws1.cell(row = r , column = 2).value
 
 while cc != None:
   t = GetInfo(cc)
-  print("--------------------------------------------------------")
+  print(f"-----{r}---------------------------------------------------")
   print(t)
   tl = t.split("\t")
+  ws2.cell(row = r + 1, column = 1).value = ls
   for l in range(0, len(tl)):
-    ws2.cell(row = r + 1, column = l + 1).value = tl[l]
+    ws2.cell(row = r + 1, column = l + 2).value = tl[l]
 ##    print(f"{l}: {tl[l - 1]}")
-  cc = ws1.cell(row = r, column=1).value
+  cc = ws1.cell(row = r, column = 1).value
+  ls = ws1.cell(row = r, column = 2).value
   if (r - 1) % 10 == 0:
     wb.save("KN.xlsx")
   r = r + 1
