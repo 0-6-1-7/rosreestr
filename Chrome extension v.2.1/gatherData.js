@@ -3,6 +3,12 @@ chrome.runtime.onMessage.addListener(Listener);
 try { if (r_enc.style.display == "none") { sw_r_enc.click(); } }  catch {}
 try { if (s_notes.style.display == "none") { sw_s_notes.click(); } } catch {}
 
+document.querySelector("div.headerBody").style.visibility = "hidden";
+document.querySelector("div.headerBody").style.height = 0;
+document.querySelector("div.top-menu").style.visibility = "hidden";
+document.querySelector("div.top-menu").style.height = 0;
+document.querySelector("div.portlet-side-menu").style.visibility = "hidden";
+document.querySelector("div.content-right").style.marginTop = "-90px";
 
 function Listener(request, sender, sendResponse) {
 		if (request.storedata == "storedata")
@@ -16,6 +22,8 @@ function payload(callback){
 
 	try { if (r_enc.style.display == "none") { sw_r_enc.click(); } }  catch {}
 	try { if (s_notes.style.display == "none") { sw_s_notes.click(); } } catch {}
+	
+	
 	
 	var Content = document.querySelector("div.portlet-body").innerText + "\n";
 
