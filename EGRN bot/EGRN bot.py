@@ -9,7 +9,7 @@ from datetime import datetime
 EGRN = None
 wb = None
 ws = None
-tout = 6
+tout = 290 ## пауза между запросами в сеукндах
   
 ##------------------------------------------------------------##
 def EGRNinit():
@@ -22,6 +22,16 @@ def EGRNinit():
         EGRN.implicitly_wait(20)
     except:
         print("Сайт Росреестра не работает")
+##------------------------------------------------------------##
+def Wait(t):
+    print(f"     Пауза между запросами {t} секунд [----------]")
+    print(f"                             ожидание [", end = "")
+    t10 = t // 10
+    for t in range(0, 10):
+        time.sleep(t10)
+        print("X", end = "")
+    time.sleep(t % 10)
+    print("]")
 ##------------------------------------------------------------##
 def RecognizeCaptcha(c):
     global EGRN
@@ -63,7 +73,14 @@ def GetInfo():
         
     time.sleep(1)
     while True:
-        CaptchaField.click()
+        while True:
+            try:
+                CaptchaField.click()
+                break
+            except:
+                time.sleep(1)
+                print("CaptchaField.click() wait")
+            
 ##        print("CaptchaField.click()", end = " ")
         time.sleep(1)
         CaptchaField.send_keys(captcha)
@@ -92,20 +109,17 @@ def GetInfo():
 
     OkButton.click()
 ##    print("OkButton.click()")
+    print(f"{KN} :: {NZ} - запрос выполнен " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     row = ws.max_row + 1
     ws.cell(row = row, column = 1).value = KN
     ws.cell(row = row, column = 2).value = NZ
-    wb.save(filename = 'dn.xlsx')
-    print(f"     {KN} :: {NZ} - запрос выполнен")
-    print(f"Пауза между запросами {tout} минут :: осталось", end = " ")
-    for t in range(0, tout):
-        print(f"{6 - t}", end = " ")
-        time.sleep(60)
-    print("0")
-    
+    wb.save(filename = 'rq.xlsx')
+    Wait(tout)
 ##------------------------------------------------------------##
-def GetAll():
+def GetAll(t = 300):
     global EGRN
+    global tout
+    tout = t
     AllKN = []
     AllON = []
     i = 1
@@ -120,7 +134,7 @@ def GetAll():
         for ON in AllON:
             if KN == ON.get_attribute("innerText"):
                 EGRN.execute_script("arguments[0].scrollIntoView();", ON)
-                print(f"Объект {i} из {len(AllON)} :: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " :: ", end = "")
+                print(f"     Объект {i} из {len(AllON)} :: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " :: ", end = "")
                 ON.click()
                 time.sleep(2)
                 GetInfo()
@@ -132,13 +146,16 @@ def GetAll():
 EGRNinit()
 
 try:
-    wb = load_workbook(filename = 'dn.xlsx')
+    wb = load_workbook(filename = 'rq.xlsx')
 except:
     wb = Workbook()
 ws = wb.worksheets[0]
 if ws.cell(row = 1, column = 1).value == None:
     ws.cell(row = 1, column = 1).value = "Кадастровый номер"
     ws.cell(row = 1, column = 2).value = "Номер запроса"
-    wb.save(filename = 'dn.xlsx')
+    wb.save(filename = 'rq.xlsx')
 
 
+
+
+##<div class="v-loading-indicator-wait" style="position: absolute; display: block;"></div>
