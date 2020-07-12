@@ -10,6 +10,7 @@ row = 0
 wb = None
 ws = None
 RQ = {} # отчёт по статусам запросов
+p = 0 # счётчик строк на странице 0..25
   
 ##------------------------------------------------------------##
 def init():
@@ -41,6 +42,8 @@ def dn(d1, d2):
   global ws
   global EGRN
   global RQ
+  global p
+  p = 0
   table = EGRN.find_element_by_css_selector("table.v-table-table")
   for tr in table.find_elements_by_css_selector("tr"):
     NZ = tr.find_elements_by_css_selector("td")[0].get_attribute("innerText")
@@ -56,6 +59,7 @@ def dn(d1, d2):
     SZ = tr.find_elements_by_css_selector("td")[2].get_attribute("innerText")
     LZ = tr.find_elements_by_css_selector("td")[3].find_elements_by_css_selector("a")
     if (d1 <= dz <= d2):
+      p = p + 1
       s = f"{NZ} {DZ} {SZ}"
       if len(LZ) > 0 and (not found or ws.cell(row = r, column = 3).value != "Завершена"):
         LZ[0].click()
@@ -77,6 +81,7 @@ def dn(d1, d2):
 def dnd(d, p1 = 1, p2 = 200):
   global EGRN
   global RQ
+  global p
   RQ = {}
   init_pyxl()
   table = EGRN.find_element_by_css_selector("table.v-table-table")
@@ -116,7 +121,7 @@ def dnd(d, p1 = 1, p2 = 200):
     
   status = True
   while dn(dd[0], dd[1]) and status and activepage in range(p1, p2):
-    print(f"Обработана странца {activepage}")
+    print(f"Обработана странца {activepage} :: строк {p}")
     ## check if the current page is the final one
     if len(next_page.find_elements_by_css_selector("div.v-button.v-disabled.v-button-link.link")) > 0:
       break
@@ -141,5 +146,5 @@ def dnd(d, p1 = 1, p2 = 200):
         
 
 print("1. init()")
-print("2. dnd(\"01.06.2020-30.06.2020\")")
+print("2. dnd(\"01.07.2020-31.07.2020\")")
 
