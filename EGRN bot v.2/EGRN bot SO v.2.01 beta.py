@@ -190,9 +190,9 @@ def GetInfo():
     CaptchaField = vapp.find_elements_by_xpath(".//input[@type='text']")[0]
     SendButton = vapp.find_element_by_xpath(".//span[contains(@class,'v-button-caption') and contains(text(),'Отправить запрос')]")
 
-    Radio = vapp.find_elements_by_xpath(".//input[@type='radio']")[1]
-    EGRN.execute_script("arguments[0].scrollIntoView();", Radio)
-    Radio.click()
+##    Radio = vapp.find_elements_by_xpath(".//input[@type='radio']")[1]
+##    EGRN.execute_script("arguments[0].scrollIntoView();", Radio)
+##    Radio.click()
 
 # цикл будет работать в случае когда капча распознанна неверно
     while True:
