@@ -128,6 +128,8 @@ def GetInfo(KN):
 ##------------------------------------------------------------##
 SIpONinit()
 
+p = os.path.split(os.path.dirname(os.path.abspath(__file__)))[1]
+
 from openpyxl import load_workbook
 wb = load_workbook(filename = 'KN.xlsx')
 ws1 = wb.worksheets[0]
@@ -144,7 +146,7 @@ ls = ws1.cell(row = r , column = 2).value
 
 while cc != None:
   t = GetInfo(cc)
-  print(f"----- {r - 1} из {rmax} ---------------------------------------------------")
+  print(f"----- [ {r - 1} из {rmax} ] ----- [ {p} ] ----------------------------------------------")
   print(t)
   tl = t.split("\t")
   ws2.cell(row = r, column = 1).value = ls
@@ -158,6 +160,5 @@ while cc != None:
   ls = ws1.cell(row = r, column = 2).value
 
 wb.save("KN.xlsx")
-print("\n\n\n\n\nВсё готово!")
-print(os.path.abspath(__file__))
-print(time.strftime("%H:%M:%S", time.localtime()))
+print(f"\n\n\n\n\nВсё готово! ----- [ {p} ] ----- [ {time.strftime('%H:%M:%S', time.localtime())} ] ")
+print()
