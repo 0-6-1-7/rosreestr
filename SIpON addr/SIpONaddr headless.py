@@ -166,6 +166,8 @@ def GetInfoByAddr(subject_id = "", region_id = "", settlement_id = "", street = 
 ##------------------------------------------------------------##
 SIpONinit()
 
+p = os.path.split(os.path.dirname(os.path.abspath(__file__)))[1]
+
 from openpyxl import load_workbook
 wb = load_workbook(filename = 'KNaddr.xlsx')
 ws1 = wb.worksheets[0]
@@ -189,7 +191,7 @@ while ws1.cell(row = r1, column=1).value != None:
     ws1.cell(row = r1 , column = 7).value,
     ws1.cell(row = r1 , column = 8).value)
 
-  print(f"----- {r1 - 1} из {r1max} ---------------------------------------------------")
+  print(f"----- [ {r1 - 1} из {r1max} ] ----- [ {p} ] ----------------------------------------------")
   print(t)
   tl = t.split("\n")
   for l in range(0, len(tl)):
@@ -201,6 +203,5 @@ while ws1.cell(row = r1, column=1).value != None:
   r1 = r1 + 1
 
 wb.save("KNaddr.xlsx")
-print("\n\n\n\n\nВсё готово!")
-print(os.path.abspath(__file__))
-print(time.strftime("%H:%M:%S", time.localtime()))
+print(f"\n\n\n\n\nВсё готово! ----- [ {p} ] ----- [ {time.strftime('%H:%M:%S', time.localtime())} ] ")
+print()
