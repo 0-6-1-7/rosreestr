@@ -2,8 +2,9 @@ from recognize import recognize
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.select import Select
 
-import openpyxl, os, time
+import openpyxl, os, re, time
 
 SIpON = None
 status = 0 # состояние сайта
@@ -96,23 +97,66 @@ def GetInfoByAddr(subject_id = "", region_id = "", settlement_id = "", street = 
     if status == 0:
       try:
         SIpON.execute_script("arguments[0].click();", SIpON.find_element_by_id("adress"))
-        r = SIpON.find_element_by_css_selector("select[name='subject_id']")
-        if prev_subject_id != subject_id:
-          time.sleep(3)
-          r.send_keys(subject_id)
-          prev_subject_id = subject_id
+        l = 1
+        while True:
+          r = SIpON.find_element_by_css_selector("select[name='subject_id']")
+          if prev_subject_id != subject_id:
+            time.sleep(3)
+            r.send_keys(subject_id)
+            rs = Select(r)
+            rst = rs.first_selected_option.text
+            if re.match(subject_id, rst, re.IGNORECASE) != None:
+              prev_subject_id = subject_id
+              break
+            else:
+              print(f"Ошибка при выборе региона, попытка {l}")
+              l = l + 1
+              if l > 3:
+                print("Три попытки, на выход")
+                raise
+          else:
+            break
+          
         r = SIpON.find_element_by_css_selector("select[name='region_id']")           
-        if prev_region_id != region_id:
-          time.sleep(3)
-          r.send_keys(region_id)
-          prev_region_id = region_id
+        l = 1
+        while True:
+          if prev_region_id != region_id:
+            time.sleep(3)
+            r.send_keys(region_id)
+            rs = Select(r)
+            rst = rs.first_selected_option.text
+            if re.match(region_id, rst, re.IGNORECASE) != None:
+              prev_region_id = region_id
+              break
+            else:
+              print(f"Ошибка при выборе района, попытка {l}")
+              l = l + 1
+              if l > 3:
+                print("Три попытки, на выход")
+                raise
+          else:
+            break
+
         r = SIpON.find_element_by_css_selector("select[name='settlement_id']")
-        if settlement_id == None:
-          settlement_id = ""
-        if prev_settlement_id != settlement_id:
-          time.sleep(3)
-          r.send_keys(settlement_id)
-          prev_settlement_id = settlement_id
+        l = 1
+        while True:
+          if prev_settlement_id != settlement_id:
+            time.sleep(3)
+            r.send_keys(settlement_id)
+            rs = Select(r)
+            rst = rs.first_selected_option.text
+            if re.match(settlement_id, rst, re.IGNORECASE) != None:
+              prev_settlement_id = settlement_id
+              break
+            else:
+              print(f"Ошибка при выборе населённого пункта, попытка {l}")
+              l = l + 1
+              if l > 3:
+                print("Три попытки, на выход")
+                raise
+          else:
+            break
+          
         r = SIpON.find_element_by_css_selector("input[name='street']")
         if street == None:
           street = ""
