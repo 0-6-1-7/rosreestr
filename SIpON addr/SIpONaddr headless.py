@@ -2,6 +2,7 @@ from recognize import recognize
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.select import Select
 
 import openpyxl, os, re, time
@@ -142,18 +143,23 @@ def GetInfoByAddr(subject_id = "", region_id = "", settlement_id = "", street = 
         while True:
           if prev_settlement_id != settlement_id:
             time.sleep(3)
-            r.send_keys(settlement_id)
-            rs = Select(r)
-            rst = rs.first_selected_option.text
-            if re.match(settlement_id, rst, re.IGNORECASE) != None:
+            if settlement_id == None:
+              r.send_keys(Keys.HOME)
               prev_settlement_id = settlement_id
               break
             else:
-              print(f"Ошибка при выборе населённого пункта, попытка {l}")
-              l = l + 1
-              if l > 3:
-                print("Три попытки, на выход")
-                raise
+              r.send_keys(settlement_id)
+              rs = Select(r)
+              rst = rs.first_selected_option.text
+              if re.match(settlement_id, rst, re.IGNORECASE) != None:
+                prev_settlement_id = settlement_id
+                break
+              else:
+                print(f"Ошибка при выборе населённого пункта, попытка {l}")
+                l = l + 1
+                if l > 3:
+                  print("Три попытки, на выход")
+                  raise
           else:
             break
           
