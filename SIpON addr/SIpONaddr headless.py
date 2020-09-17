@@ -33,7 +33,7 @@ def SIpONinit():
   SIpON.implicitly_wait(15)
   SIpON.set_page_load_timeout(30)
   try:
-    SIpON.get("https://rosreestr.ru/wps/portal/online_request")
+    SIpON.get("https://rosreestr.gov.ru/wps/portal/online_request")
   except:
     print("Сайт Росреестра не работает")
     return 999
