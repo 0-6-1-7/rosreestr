@@ -31,7 +31,7 @@ def EGRNinit():
         try:
             EGRN = webdriver.Chrome()
             EGRN.set_page_load_timeout(30)
-            EGRN.get("https://rosreestr.ru/wps/portal/p/cc_present/ir_egrn")
+            EGRN.get("https://rosreestr.gov.ru/wps/portal/p/cc_present/ir_egrn")
             DemoKey = WebDriverWait(EGRN, 10).until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(),'6F9619FF-8B86-D011-B42D-00CF4FC964FF')]")))
             print("Сайт Росреестра работает, страница авторизации загружена нормально.")
             EGRN.implicitly_wait(20)
