@@ -28,12 +28,12 @@ function base64_url_encode(url) {
 
 function getCaptcha() {
 	if (document.title.length < 1) { return; }
-	if (document.URL.indexOf("https://rosreestr.ru/wps/portal/online_request") >= 0 ||
-		document.URL.indexOf("https://rosreestr.ru/wps/portal/p/cc_ib_portal_services/online_request/") >= 0) {
+	if (document.URL.indexOf(".ru/wps/portal/online_request") >= 0 ||
+		document.URL.indexOf(".ru/wps/portal/p/cc_ib_portal_services/online_request/") >= 0) {
 		var captcha = document.getElementById("captchaImage2");
 		var captchaField = document.getElementsByName("captchaText")[0];
 	}
-	else if (document.URL.indexOf("https://rosreestr.ru/wps/portal/p/cc_present/ir_egrn") >= 0){
+	else if (document.URL.indexOf(".ru/wps/portal/p/cc_present/ir_egrn") >= 0){
 		var ibmMainContainer = document.getElementsByName("ibmMainContainer")[0];
 		if (ibmMainContainer.getElementById("gwt-uid-3") == null) { return; }
 		var captcha = ibmMainContainer.querySelector("img");

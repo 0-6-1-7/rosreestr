@@ -24,14 +24,18 @@
 		[
 		"https://rosreestr.ru/wps/portal/online_request/*", 
 		"https://rosreestr.ru/wps/portal/p/cc_ib_portal_services/online_request/*",
-		"https://rosreestr.ru/wps/portal/p/cc_present/ir_egrn/*"
+		"https://rosreestr.ru/wps/portal/p/cc_present/ir_egrn/*",
+		"https://rosreestr.gov.ru/wps/portal/online_request",
+		"https://rosreestr.gov.ru/wps/portal/p/cc_ib_portal_services/online_request/*",
+		"https://rosreestr.gov.ru/wps/portal/p/cc_present/ir_egrn/*"
 		],
      "js": ["contentScript.js"]
    },
    {
      "matches": 
 		[
-		"https://rosreestr.ru/wps/portal/p/cc_ib_portal_services/online_request/*object_data_id=*"
+		"https://rosreestr.ru/wps/portal/p/cc_ib_portal_services/online_request/*object_data_id=*",
+		"https://rosreestr.gov.ru/wps/portal/p/cc_ib_portal_services/online_request/*object_data_id=*"
 		],
      "js": ["gatherData.js"]
    }
