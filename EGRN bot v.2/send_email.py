@@ -15,12 +15,15 @@ def send_email(subject, body):
     if re.search("yes", sendOK, flags = re.IGNORECASE) == None and re.search(r"\bOK\b", subject, flags = re.IGNORECASE) != None:
         return
     message = f"From: {addr}\nTo: {addr}\nSubject: {subject}\n\n{body}"
-    server = smtplib.SMTP_SSL(server)
+    try:
+        server = smtplib.SMTP_SSL(server)
 ##    server.set_debuglevel(1)
-    server.ehlo(addr)
-    server.login(addr, apppass)
-    server.sendmail(addr, addr, message)
-    server.quit()
+        server.ehlo(addr)
+        server.login(addr, apppass)
+        server.sendmail(addr, addr, message)
+        server.quit()
+    except:
+        print(f"Ошибка при отправке email {subject} :: {body}")
  
 ## only ASCII chars allowed
 ## только английский текст
