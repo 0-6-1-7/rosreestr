@@ -18,7 +18,7 @@ def SIpONinit():
   SIpON.implicitly_wait(2)
   SIpON.set_page_load_timeout(30)
   try:
-    SIpON.get("https://rosreestr.gov.ru/wps/portal/online_request")
+    SIpON.get("https://rosreestr.ru/wps/portal/online_request")
   except:
     print("Сайт Росреестра не работает")
     return 999
@@ -137,7 +137,7 @@ ws2 = wb.create_sheet("Sheet KN")
 
 r = 2 # строка в исходном списке
 rmax = ws1.max_row - 1 # всего строк
-t = "Лицевой счёт\tКадастровый номер\tКатегория объекта\tУчтённый\tАдрес\tТип объекта\tФорма собств.\tДата последнего перехода права собств."
+t = "Лицевой счёт\tКадастровый номер\tДата обновления информации\tКатегория объекта\tУчтённый\tПлощадь\tЕдиница изм.\tАдрес\tТип объекта\tФорма собств.\tДата последнего перехода права собств."
 tl = t.split("\t")
 for l in range(0, len(tl)):
   ws2.cell(row = 1, column = l + 1).value = tl[l]
@@ -148,7 +148,7 @@ while cc != None:
   t = GetInfo(cc)
   print(f"----- [ {r - 1} из {rmax} ] ----- [ {p} ] ----------------------------------------------")
   print(t)
-  tl = t.split("\t")
+  tl = t.split("\t", 10)
   ws2.cell(row = r, column = 1).value = ls
   for l in range(0, len(tl)):
     ws2.cell(row = r, column = l + 2).value = tl[l]
