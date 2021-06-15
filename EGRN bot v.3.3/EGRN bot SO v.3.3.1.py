@@ -83,7 +83,6 @@ def DisplayErrorMessage(text):
     print("╙─" + "─" * maxlen + "─╜")
 
 
-##--- end of DisplayErrorMessage ---##------------------------------------------------------------##
 
 def printProgressBar(iteration, total):
     length = 30
@@ -94,7 +93,6 @@ def printProgressBar(iteration, total):
     if iteration == total: print(" " * 90)
 
 
-##--- end of printProgressBar ---##------------------------------------------------------------##
 
 def Wait(TimeToWait):
     global RunFromIDLE
@@ -114,7 +112,6 @@ def Wait(TimeToWait):
             printProgressBar(t + 1, TimeToWait)
 
 
-##--- end of Wait ---##------------------------------------------------------------##
 
 def EGRNinit():
     global EGRN
@@ -179,11 +176,10 @@ def EGRNinit():
         EGRN.close()
         EGRN.quit()
         if SiteRestartRetriesCounter > SiteRestartRetriesMax:
-            print("\n\n\n\nСайт Росреестра не работает. Мы пытались...")
+            logging.warning("\n\n\n\nСайт Росреестра не работает. Мы пытались...")
             return ("SiteFailed")
 
 
-##--- end of EGRNinit ##------------------------------------------------------------##
 
 def EGRNauth():
     global AuthKey
@@ -222,7 +218,6 @@ def EGRNauth():
         return ("AuthOK")
 
 
-##--- end of EGRNauth ##------------------------------------------------------------##
 
 def EGRNSearchPage():
     global EGRN
@@ -245,7 +240,6 @@ def EGRNSearchPage():
         return ("SearchPageFailed")
 
 
-##--- end of EGRNSearchPage ##------------------------------------------------------------##
 
 def EGRNSearch():
     global KNS, Reg
@@ -301,7 +295,6 @@ def EGRNSearch():
             return ("SearchKNsOK")
 
 
-##--- end of EGRNSearch ##------------------------------------------------------------##
 
 def RecognizeCaptcha(c):
     global EGRN
@@ -320,7 +313,6 @@ def RecognizeCaptcha(c):
     return captcha
 
 
-##--- end of RecognizeCaptcha ##------------------------------------------------------------##
 
 def GetCaptcha(vapp):
     ##    print("Обработка капчи")
@@ -347,7 +339,6 @@ def GetCaptcha(vapp):
     return ("00000")
 
 
-##--- end of GetCaptcha ##------------------------------------------------------------##
 
 def CheckRQfile():
     global wb, ws
@@ -371,9 +362,10 @@ def CheckRQfile():
             RQStatus = "FileRQFailed"
             time.sleep(5)
             break
+
         ## Проверим структуру файла
-        Reg = ws.cell(row=1,
-                      column=1).value  # Регион: во-первых, должен быть не пустой. во-вторых - совпадать со списком
+        # Регион: во-первых, должен быть не пустой. во-вторых - совпадать со списком
+        Reg = ws.cell(row=1, column=1).value
         if Reg == None:
             print("\n\n\nВ файле не указан регион")
             RQStatus = "FileRQNoRegionError"
@@ -390,6 +382,7 @@ def CheckRQfile():
             print("\n\n\nВ файле слишком мало данных")
             RQStatus = "FileRQTooLittleDataError"
             break
+
         ## Проверим все КН в списке на правильность по маске
         for row in ws.iter_rows(min_row=3):
             kn = row[0].value
@@ -399,6 +392,7 @@ def CheckRQfile():
                 row[1].value = "нет"
                 print(f"Неправильный кадастровый номер в строке {row[1].row}")
                 RQStatus = "FileRQIncorrectKNError"
+
         ## Проверим  список на дубликаты КН
         KNList = []
         DupKNList = []
@@ -413,6 +407,7 @@ def CheckRQfile():
 
         wb.save(filename='rq.xlsx')
         break
+
     if RQStatus == None:
         ## Подготовим список КН, по которым в поле Запрос пусто, т.е. запросов ещё не было
         ## Возможен вариант, когда КН не был найден - его нет в ФГИС ЕГРН
@@ -465,7 +460,6 @@ def CheckRQfile():
     return (RQStatus)
 
 
-##--- end of CheckRQfile ##------------------------------------------------------------##
 
 def RQSave(KN, NZ, d):
     global wb, ws
@@ -481,7 +475,6 @@ def RQSave(KN, NZ, d):
         print(f"{KN}\t{NZ}\t{d}")
 
 
-##--- end of RQSave ##------------------------------------------------------------##
 
 def MarkKNAsNotFound():
     global wb, ws
@@ -493,7 +486,6 @@ def MarkKNAsNotFound():
     wb.save(filename='rq.xlsx')
 
 
-##--- end of MarkKNAsNotFound ##------------------------------------------------------------##
 
 def GetInfo():
     global EGRN
@@ -681,8 +673,8 @@ def GetAll(tout=defaultTimeout):
         send_email("EGRN bot batch done", "Batch done!")
         return ("BatchDone")
 
-# RunFromIDLE = "idlelib" in sys.modules
 
+# RunFromIDLE = "idlelib" in sys.modules
 while True:
     Status = None
     Status = CheckRQfile()
