@@ -1,4 +1,5 @@
 import logging
+import platform
 import re
 from configparser import ConfigParser
 from datetime import datetime
@@ -6,11 +7,12 @@ from datetime import datetime
 import time
 from openpyxl import Workbook
 from openpyxl import load_workbook
-from selenium import webdriver
+from selenium.webdriver import Chrome
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from webdriver_manager.chrome import ChromeDriverManager
 
 EGRN = None
 status = 0  # состояние сайта
@@ -22,6 +24,24 @@ p = 0  # счётчик строк на странице 0..25
 PageRefreshRetriesMax = 10  # количество попыток перезагрузки страница авторизации
 default_implicitly_wait = 40
 
+cfg = ConfigParser()
+cfg.read("config.ini")
+isHeadless = cfg.get("driver", "headless")
+DEBUG = True
+
+if DEBUG:
+    logging.basicConfig(
+        format=u'%(filename)-18s [LINE:%(lineno)-4s] %(levelname)-8s [%(asctime)s] %(message)s',
+        level=logging.INFO,
+
+    )
+else:
+    logging.basicConfig(
+        format=u'%(filename)-18s [LINE:%(lineno)-4s] %(levelname)-8s [%(asctime)s] %(message)s',
+        level=logging.WARNING
+        # filename='debug.log'
+    )
+
 
 def EGRNinit():
     global EGRN
@@ -29,6 +49,7 @@ def EGRNinit():
     SiteRestartRetriesMax = 10  # количество попыток перезапуска сайта
     SiteRestartRetriesCounter = 0
     SiteStatusOK = False
+    plt = 20  # page load timeout
 
     # На случай если мы попали сюда после какой-нибудь ошибки - нужно начать заново
     if EGRN != None:
@@ -42,18 +63,55 @@ def EGRNinit():
             chrome_options.add_argument("--disable-blink-features=AutomationControlled")
             chrome_options.add_argument('--disable-logging')
 
-            EGRN = webdriver.Chrome(options=chrome_options)
-            EGRN.set_page_load_timeout(40)
-            EGRN.get("https://rosreestr.gov.ru/wps/portal/p/cc_present/ir_egrn")
-            DemoKey = WebDriverWait(EGRN, 10).until(EC.presence_of_element_located(
-                (By.XPATH, "//*[contains(text(),'6F9619FF-8B86-D011-B42D-00CF4FC964FF')]")))
-            print("Сайт Росреестра работает, страница авторизации загружена нормально.")
-            EGRN.implicitly_wait(default_implicitly_wait)
-            return ("SiteOK")
+            chrome_options.add_argument("download.default_directory=./Responses")
+            chrome_options.add_experimental_option("prefs", {"download.default_directory": "./Responses"})
 
-        except:
+            if isHeadless:
+                chrome_options.add_argument("--headless")
+
+            try:
+                if platform.system() == 'Linux':
+                    EGRN = Chrome('./chromedriverUnix', options=chrome_options)
+                if platform.system() == 'Darwin':
+                    EGRN = Chrome('./chromedriverDarwin', options=chrome_options)
+                else:
+                    EGRN = Chrome('chromedriver', options=chrome_options)
+
+            except Exception as ex:
+                logging.warning(f'Use ChromeDriverManager')
+                logging.warning(f'{ex}')
+                EGRN = Chrome(ChromeDriverManager().install(), options=chrome_options)
+
+            EGRN.implicitly_wait(10)
+
+            DemoKey = None
+
+            while True:
+                EGRN.set_page_load_timeout(plt)
+                try:
+                    EGRN.get("https://rosreestr.ru/wps/portal/p/cc_present/ir_egrn")
+                except:
+                    EGRN.execute_script("window.stop();")
+
+                try:
+                    DemoKey = WebDriverWait(EGRN, 10).until(EC.presence_of_element_located(
+                        (By.XPATH, "//*[contains(text(),'6F9619FF-8B86-D011-B42D-00CF4FC964FF')]")))
+                except:
+                    plt = plt + 10
+
+                if DemoKey != None:
+                    logging.info("Сайт Росреестра работает, страница авторизации загружена нормально.")
+                    return ("SiteOK")
+
+                if plt > 30:
+                    break
+                logging.warning("Сайт работает медленнее, чем хотелось бы...")
+                logging.warning("Слишком больщой таймаут. Скорее всего, сайт не работает")
+
+        except Exception as ex:
+            logging.warning(f'{ex}')
             SiteRestartRetriesCounter = SiteRestartRetriesCounter + 1
-            print(f"Страница не загружена. Перезагрузка, попытка № {SiteRestartRetriesCounter}")
+            logging.warning(f"Страница не загружена. Перезагрузка, попытка № {SiteRestartRetriesCounter}")
 
         try:
             EGRN.close()
@@ -134,7 +192,6 @@ def EGRNRequestPage():
         return ("RequestPageFailed")
 
 
-##------------------------------------------------------------##
 def init_pyxl():
     global wb
     global ws
@@ -150,20 +207,21 @@ def init_pyxl():
         wb.save(filename='dn.xlsx')
 
 
-##------------------------------------------------------------##
 def init_pyxlx(fn):
     global wb
     global ws
+
     try:
-        wb = load_workbook(filename=fn + ".xlsx")
-    except:
-        print("Не такого файла, дальнейшая работа невозможна")
+        wb = load_workbook(filename=f'./{fn}.xlsx')
+    except Exception as ex:
+        logging.warning(f"Нет такого файла({fn}.xlsx), дальнейшая работа невозможна")
+        logging.warning(f'{ex}')
+
     ws = wb.worksheets[0]
     ws.cell(row=2, column=5).value = "Статус"
     wb.save(filename=fn + ".xlsx")
 
 
-##------------------------------------------------------------##
 def CheckDNfile():
     global wb
     global ws
@@ -228,17 +286,20 @@ def dn(d1, d2):
     return (d1 <= dz <= d2) or (d1 <= d2 <= dz)
 
 
-##------------------------------------------------------------##
 def dnd(d, p1=1, p2=200):
     global EGRN
-    global RQ
+    # global RQ
     global p
+
     Status = CheckDNfile()
+
     if Status != "FileDNOK":
         return
+
     EGRN.implicitly_wait(0)
     RQ = {}
     init_pyxl()
+
     table = EGRN.find_element_by_css_selector("table.v-table-table")
     pm = EGRN.find_elements_by_css_selector(
         "div.v-horizontallayout.v-horizontallayout-pageManagement.pageManagement > div > div")
@@ -303,14 +364,12 @@ def dnd(d, p1=1, p2=200):
                 activepage = 9999
                 status = False
 
-    print("===============================")
-    print("Всё готово")
+    logging.info("Всё готово")
     for sz in sorted(RQ):
-        print("%s: %s" % (sz, RQ[sz]))
+        logging.info("%s: %s" % (sz, RQ[sz]))
     EGRN.implicitly_wait(default_implicitly_wait)
 
 
-##------------------------------------------------------------##
 def dndx(fn='rq'):
     global EGRN
     global RQ
@@ -318,16 +377,16 @@ def dndx(fn='rq'):
     RQ = {}
     EGRN.implicitly_wait(0)
     init_pyxlx(fn)
-    ffield = ffield = EGRN.find_elements_by_xpath(".//input[@type='text' and contains(@class,'v-textfield')]")[0]
+
+    ffield = EGRN.find_elements_by_xpath(".//input[@type='text' and contains(@class,'v-textfield')]")[0]
     fbutton = EGRN.find_element_by_xpath(".//span[contains(@class,'v-button-caption') and contains(text(),'Обновить')]")
     ##80-178958396
     for row in ws.iter_rows(min_row=3):
         rqn = row[2].value
         rqs = row[4].value
-        print("Строка {0:4d} из {1:4d} :: запрос {2} :: статус ".
-              format(row[0].row - 2, ws.max_row - 2, rqn), end="")
+        logging.info(f"Строка {row[0].row - 2} из {ws.max_row - 2} :: запрос {rqn} :: статус:")
         if row[4].value == "Завершена":
-            print("Завершена, результат был загружен ранее")
+            logging.info("Завершена, результат был загружен ранее")
             RQ["Завершена, результат был загружен ранее"] = RQ.get("Завершена, результат был загружен ранее", 0) + 1
         else:
             if re.search(r"80-\d{0}", f"{rqn}") != None:
@@ -339,7 +398,7 @@ def dndx(fn='rq'):
                     td = WebDriverWait(EGRN, 15).until(
                         EC.presence_of_element_located((By.XPATH, f".//div[contains(text(), '{rqn}')]")))
                 except:
-                    print("Ошибка при поиске результата запроса")
+                    logging.warning("Ошибка при поиске результата запроса")
                     break
                 table = EGRN.find_element_by_css_selector("table.v-table-table")
                 td = table.find_element_by_xpath(f".//div[contains(text(), '{rqn}')]")
@@ -347,28 +406,34 @@ def dndx(fn='rq'):
                     tr = table.find_elements_by_css_selector("tr")[0]
                     SZ = tr.find_elements_by_css_selector("td")[2].get_attribute("innerText")
                     LZ = tr.find_elements_by_css_selector("td")[3].find_elements_by_css_selector("a")
-                    print(SZ, end="")
+                    logging.info(f"{SZ}")
                     RQ[SZ] = RQ.get(SZ, 0) + 1
                     if len(LZ) > 0:
                         if row[4].value != "Завершена":
                             LZ[0].click()
-                            print(", результат загружен")
+                            logging.info(f"Результат загружен")
                         else:
-                            print(", результат был загружен ранее")
-                    else:
-                        print()
+                            logging.info(f"Результат был загружен ранее")
+
                     row[4].value = SZ
 
                 else:
-                    print("запрос по файлу выполнен, но не найден")
+                    logging.info(f"Запрос по файлу выполнен, но не найден")
             else:
-                print("запрос по файлу не выполнялся")
+                logging.info(f"Запрос по файлу не выполнялся")
+
             if (row[0].row - 2) % 10 == 0:
                 wb.save(fn + ".xlsx")
-                print("Файл сохранён")
+                logging.info("Файл сохранён")
+
     wb.save(fn + ".xlsx")
-    print("\n\nВсе запросы из файла проверены")
-    for sz in sorted(RQ): print("%s: %s" % (sz, RQ[sz]))
+    logging.info("Все запросы из файла проверены")
+
+    for sz in sorted(RQ):
+        logging.info("%s: %s" % (sz, RQ[sz]))
+
+    EGRN.close()
+    EGRN.quit()
 
 
 while True:
@@ -386,11 +451,11 @@ while True:
         quit()
 
     if Status == "RequestPageOK":
-        print('ТУТ')
+        dndx('rq')
         break
 
-print("Всё готово для работы")
-print("\nПодсказка:")
-print("dnd(\"01.03.2021-31.03.2021\") - список всех запросов и статусов будет сохранён в файл dn.xlsx")
-print(" или ")
-print("dndx(\"ИмяФайлаСЗапросами\") - проверка запросов по списку и загрузка результатов")
+# print("Всё готово для работы")
+# print("\nПодсказка:")
+# print("dnd(\"01.03.2021-31.03.2021\") - список всех запросов и статусов будет сохранён в файл dn.xlsx")
+# print(" или ")
+# print("dndx(\"ИмяФайлаСЗапросами\") - проверка запросов по списку и загрузка результатов")

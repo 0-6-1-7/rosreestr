@@ -37,7 +37,9 @@ SaveCaptcha = False  # сохранение капчи в файл
 
 defaultTimeout = 315  ## пауза между запросами в сеукндах 315
 
-isHeadless = False
+cfg = ConfigParser()
+cfg.read("config.ini")
+isHeadless = cfg.get("driver", "headless")
 SO = False  # True для заказа выписок о переходах права (как в EGRN bot), False для заказа выписок о сведениях об объекте (как в EGRN bot SO, как раньше)
 DEBUG = True
 
@@ -172,11 +174,11 @@ def EGRNinit():
                     break
                 logging.warning("Сайт работает медленнее, чем хотелось бы...")
                 logging.warning("Слишком больщой таймаут. Скорее всего, сайт не работает")
-        except:
-            pass
 
-        SiteRestartRetriesCounter = SiteRestartRetriesCounter + 1
-        logging.warning(f"Страница не загружена. Перезагрузка, попытка № {SiteRestartRetriesCounter}")
+        except Exception as ex:
+            logging.warning(f'{ex}')
+            SiteRestartRetriesCounter = SiteRestartRetriesCounter + 1
+            logging.warning(f"Страница не загружена. Перезагрузка, попытка № {SiteRestartRetriesCounter}")
 
         try:
             EGRN.close()
@@ -368,6 +370,7 @@ def CheckRQfile():
             print("\n\n\nНет файла rq.xlsx")
             RQStatus = "NoFileRQError"
             break
+
         try:
             wb.save(filename='rq.xlsx')
         except:
