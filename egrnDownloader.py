@@ -71,11 +71,11 @@ def EGRNinit():
 
             try:
                 if platform.system() == 'Linux':
-                    EGRN = Chrome('./chromedriverUnix', options=chrome_options)
-                if platform.system() == 'Darwin':
-                    EGRN = Chrome('./chromedriverDarwin', options=chrome_options)
+                    EGRN = Chrome('drivers/chromedriverUnix', options=chrome_options)
+                elif platform.system() == 'Darwin':
+                    EGRN = Chrome('drivers/chromedriverDarwin', options=chrome_options)
                 else:
-                    EGRN = Chrome('chromedriver', options=chrome_options)
+                    EGRN = Chrome('drivers/chromedriver', options=chrome_options)
 
             except Exception as ex:
                 logging.warning(f'Use ChromeDriverManager')

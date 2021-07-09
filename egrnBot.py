@@ -15,8 +15,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from time import sleep
 from webdriver_manager.chrome import ChromeDriverManager
 
-from recognize import recognize
-from send_email import send_email
+from tools.recognize import recognize
+from tools.send_email import send_email
 
 EGRN = None
 wb = None
@@ -138,11 +138,11 @@ def EGRNinit():
 
             try:
                 if platform.system() == 'Linux':
-                    EGRN = Chrome('./chromedriverUnix', options=chrome_options)
-                if platform.system() == 'Darwin':
-                    EGRN = Chrome('./chromedriverDarwin', options=chrome_options)
+                    EGRN = Chrome('drivers/chromedriverUnix', options=chrome_options)
+                elif platform.system() == 'Darwin':
+                    EGRN = Chrome('drivers/chromedriverDarwin', options=chrome_options)
                 else:
-                    EGRN = Chrome('chromedriver', options=chrome_options)
+                    EGRN = Chrome('drivers/chromedriver', options=chrome_options)
 
             except Exception as ex:
                 logging.warning(f'Use ChromeDriverManager')
@@ -364,7 +364,7 @@ def CheckRQfile():
     RQStatus = None
     while True:
         try:
-            wb = load_workbook(filename='rq.xlsx')
+            wb = load_workbook(filename='data/rq.xlsx')
             ws = wb.worksheets[0]
         except:
             print("\n\n\nНет файла rq.xlsx")
@@ -372,7 +372,7 @@ def CheckRQfile():
             break
 
         try:
-            wb.save(filename='rq.xlsx')
+            wb.save(filename='data/rq.xlsx')
         except:
             print("\n\n\nОшибка при сохранении файла rq.xlsx - вероятно, он открыт в Excel")
             RQStatus = "FileRQFailed"
@@ -406,7 +406,7 @@ def CheckRQfile():
                 row[1].value = "да"
             else:
                 row[1].value = "нет"
-                print(f"Неправильный кадастровый номер в строке {row[1].row}")
+                logging.warning(f"Неправильный кадастровый номер в строке {row[1].row}")
                 RQStatus = "FileRQIncorrectKNError"
 
         ## Проверим  список на дубликаты КН
@@ -418,10 +418,10 @@ def CheckRQfile():
             else:
                 KNList.append(row[0].value)
         if DupKNList != []:
-            print(f"Найдены дубли кадастровых номеров в строках\n{DupKNList}")
+            logging.warning(f"Найдены дубли кадастровых номеров в строках\n{DupKNList}")
             RQStatus = "FileRQDuplicateKNError"
 
-        wb.save(filename='rq.xlsx')
+        wb.save(filename='data/rq.xlsx')
         break
 
     if RQStatus == None:
@@ -483,7 +483,7 @@ def RQSave(KN, NZ, d):
         if r[0].value == KN:
             ws.cell(row=r[0].row, column=3).value = NZ
             ws.cell(row=r[0].row, column=4).value = d
-            wb.save(filename='rq.xlsx')
+            wb.save(filename='data/rq.xlsx')
             KNfound = True
     if not KNfound:
         print(f"Кадастровый номер {KN} не найден в исходном списке, номер запроса {NZ}, дата {d}")
@@ -497,7 +497,7 @@ def MarkKNAsNotFound():
     for KN in KNs.split(";"):
         for r in ws.iter_rows(min_row=3):
             if r[0].value == KN: ws.cell(row=r[0].row, column=3).value = "Не найден во ФГИС ЕГРН"
-    wb.save(filename='rq.xlsx')
+    wb.save(filename='data/rq.xlsx')
 
 
 def GetInfo():
@@ -599,7 +599,11 @@ def GetInfo():
         if PopUpType != "Normal":
             # DisplayErrorMessage(t)
             text = t.split('\n')
-            logging.warning(f'{text[0]}: {text[1]}')
+
+            try:
+                logging.warning(f'{text[0]}: {text[1]}')
+            except:
+                logging.warning(f'{text}')
 
         if PopUpType == "Normal":
             OkButton = PopUp[0].find_elements_by_xpath(
@@ -634,7 +638,6 @@ def GetAll(tout=defaultTimeout):
     global PreviousRequestTimeMark
 
     AllKN = []
-    AllON = []
     i = 1
     RetryCount = 0
     DataTable = EGRN.find_element_by_css_selector("table.v-table-table")
@@ -645,7 +648,6 @@ def GetAll(tout=defaultTimeout):
         DataTable = EGRN.find_element_by_css_selector("table.v-table-table")
         while True:
             # После каждого запроса (и попытки запроса) нужно заново определять все объекты на странице
-            AllON = []
             AllON = DataTable.find_elements_by_css_selector("tr > td:first-child")
             for ON in AllON:
                 if KN == ON.get_attribute("innerText"): break
@@ -687,11 +689,11 @@ def GetAll(tout=defaultTimeout):
     if KNsToDo == 0:  # все КН обработаны
         logging.info("Всё готово!")
         send_email("EGRN bot all done", "All done!")
-        return ("AllDone")
+        return "AllDone"
     else:
         logging.info("Задание отработано!")
         send_email("EGRN bot batch done", "Batch done!")
-        return ("BatchDone")
+        return "BatchDone"
 
 
 # RunFromIDLE = "idlelib" in sys.modules
