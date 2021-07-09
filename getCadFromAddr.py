@@ -3,19 +3,18 @@ import platform
 from configparser import ConfigParser
 from selenium.webdriver import Chrome
 
-from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.select import Select
 
-import openpyxl, os, re, sys, time
+import os, re, sys, time
 from webdriver_manager.chrome import ChromeDriverManager
 
-from recognize import recognize
+from tools.recognize import recognize
+from tools.send_email import send_email
 
-RunFromIDLE = None  # True если скрипт запущен из IDLE
 SIpON = None
-status = 0  # состояние сайта
+# status = 0  # состояние сайта
 
 cfg = ConfigParser()
 cfg.read("config.ini")
@@ -38,20 +37,22 @@ else:
 
 def SIpONinit():
     global SIpON
-    # RunFromIDLE
 
     chrome_options = Options()
+    chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
+    chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+    chrome_options.add_argument('--disable-logging')
 
     if isHeadless:
         chrome_options.add_argument("--headless")
 
     try:
         if platform.system() == 'Linux':
-            SIpON = Chrome('./chromedriverUnix', options=chrome_options)
-        if platform.system() == 'Darwin':
-            SIpON = Chrome('./chromedriverDarwin', options=chrome_options)
+            SIpON = Chrome('./drivers/chromedriverUnix', options=chrome_options)
+        elif platform.system() == 'Darwin':
+            SIpON = Chrome('./drivers/chromedriverDarwin', options=chrome_options)
         else:
-            SIpON = Chrome('chromedriver', options=chrome_options)
+            SIpON = Chrome('./drivers/chromedriver', options=chrome_options)
 
     except Exception as ex:
         logging.warning(f'Use ChromeDriverManager')
@@ -136,8 +137,10 @@ def GetInfoByAddr(new_subject="",
     ## начало основного цикла поиска
     while True:  # цикл крутится до получения результата или 10 попыток
         status = 0
-        if Search_retry_count > 9: break
-        if Search_retry_count > 1: SIpONrestart()
+        if Search_retry_count > 9:
+            break
+        if Search_retry_count > 1:
+            SIpONrestart()
 
         # № открываем форму поиска, если она скрыта после предыдущего поиска
         try:
@@ -151,7 +154,7 @@ def GetInfoByAddr(new_subject="",
         while True:  # цикл крутится пока не будет заполнена форма или 10 попыток
 
             if Fill_retry_count > 3:
-                status = 999;
+                status = 999
                 break
             else:
                 time.sleep(3)
@@ -367,13 +370,12 @@ def GetInfoByAddr(new_subject="",
     return "Не удалось выполнить за 10 попыток"
 
 
-# RunFromIDLE = "idlelib" in sys.modules
 SIpONinit()
 
 if len(sys.argv) > 1:
     wbName = sys.argv[1]
 else:
-    wbName = "KNaddr.xlsx"
+    wbName = "./data/KNaddr.xlsx"
 
 p = os.path.split(os.path.dirname(os.path.abspath(__file__)))[1] + "\\" + wbName
 
@@ -402,8 +404,7 @@ while ws1.cell(row=r1, column=1).value != None:
         ws1.cell(row=r1, column=8).value,
         ws1.cell(row=r1, column=9).value)
 
-    logging.info(f"-- [ {r1 - 1} из {r1max} ] -- [ {p} ] --")
-    logging.info(t)
+    logging.info(f"{r1 - 1} из {r1max}: {t} сохранён в {wbName}")
     tl = t.split("\n")
     for l in range(0, len(tl)):
         ws2.cell(row=r2, column=1).value = ws1.cell(row=r1, column=1).value
@@ -414,4 +415,9 @@ while ws1.cell(row=r1, column=1).value != None:
     r1 = r1 + 1
 
 wb.save(wbName)
-logging.info(f"Всё готово! -- [ {p} ] -- [ {time.strftime('%H:%M:%S', time.localtime())} ] ")
+
+SIpON.close()
+SIpON.quit()
+
+send_email('getCadFromAddr. All done', "All done!")
+logging.info(f"Всё готово! {wbName} - [ {time.strftime('%H:%M:%S', time.localtime())} ]")
