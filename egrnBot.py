@@ -444,7 +444,7 @@ def CheckRQfile():
 
         if KNsToDo == 0:
             # os.system('cls')
-            print("Все КН из списка обработаны.")
+            logging.info("Все КН из списка обработаны.")
             if ZZcount > 0: print(f"\tЧасть КН ({ZZcount}) не найдена во ФГИС ЕГРН")
             # print("\nМожно закрыть это окно.")
             RQStatus = "FileRQAllDone"

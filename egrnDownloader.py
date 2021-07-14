@@ -451,7 +451,7 @@ while True:
         quit()
 
     if Status == "RequestPageOK":
-        dndx('rq')
+        dndx('data/rq')
         break
 
 # print("Всё готово для работы")
