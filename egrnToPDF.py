@@ -2,7 +2,6 @@
 # https://habr.com/ru/post/479978/
 
 import logging
-import logging
 import os
 import platform
 import shutil
@@ -11,14 +10,11 @@ import zipfile
 from random import randint
 from time import sleep
 
-from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver import Chrome
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.keys import Keys
 from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.common.action_chains import ActionChains
 
-from config import CaptchaReloadingCounterMax, CaptchaReloadingCounter, SaveCaptcha, isHeadless
+from config import CaptchaReloadingCounterMax, SaveCaptcha, isHeadless
 from tools.recognize import recognize
 
 DEBUG = True
@@ -174,8 +170,8 @@ class Parser:
             # for x in range(size):
             self.driver.switch_to.window(handles[1])
 
-            print('-' * 30)
-            print(f'!!! {self.driver.title}')
+            # print('-' * 30)
+            # print(f'!!! {self.driver.title}')
 
             element = self.driver.find_element_by_class_name('noprint')
             self.driver.execute_script("""
@@ -189,15 +185,6 @@ class Parser:
             self.driver.close()
 
             self.driver.switch_to.window(handles[0])
-            # self.driver.quit()
-            # wait(999)
-
-
-            # os.remove(filename)
-            # os.remove(filename + '.sig')
-            # for f in os.listdir('.'):
-            #     if f.endswith('.xml'):
-            #         os.remove(f)
 
     def optionsDriver(self):
         options = Options()
