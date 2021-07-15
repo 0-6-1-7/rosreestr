@@ -1,3 +1,6 @@
+# https://habr.com/ru/post/523368/
+# https://habr.com/ru/post/479978/
+
 import logging
 import logging
 import os
