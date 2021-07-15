@@ -1,10 +1,10 @@
 import logging
 import platform
 import re
+import time
 from configparser import ConfigParser
 from datetime import datetime
 
-import time
 from openpyxl import Workbook
 from openpyxl import load_workbook
 from selenium.webdriver import Chrome
@@ -238,11 +238,10 @@ def CheckDNfile():
         wb.save(filename='dn.xlsx')
         return ("FileDNOK")
     except:
-        print("\n\n\n\n\nОшибка при сохранении файла dn.xlsx - вероятно, он открыт в Excel")
+        logging.warning("Ошибка при сохранении файла dn.xlsx - вероятно, он открыт в Excel")
         return ("FileDNFailed")
 
 
-##------------------------------------------------------------##
 def dn(d1, d2):
     global row
     global wb
