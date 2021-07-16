@@ -9,15 +9,14 @@ import time
 import zipfile
 from random import randint
 from time import sleep
+import pdfkit  # need install wkhtmltopdf
 
 from selenium.webdriver import Chrome
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 
-from config import CaptchaReloadingCounterMax, SaveCaptcha, isHeadless
+from config import CaptchaReloadingCounterMax, SaveCaptcha, isHeadless, ResponsesDir, DEBUG
 from tools.recognize import recognize
-
-DEBUG = True
 
 if DEBUG:
     logging.basicConfig(
@@ -28,8 +27,8 @@ if DEBUG:
 else:
     logging.basicConfig(
         format=u'%(filename)-18s [LINE:%(lineno)-4s] %(levelname)-8s [%(asctime)s] %(message)s',
-        level=logging.WARNING
-        # filename='debug.log'
+        level=logging.INFO,
+        filename='debug.log'
     )
 
 
@@ -40,21 +39,17 @@ def wait(a, b=0):
 
 
 class Parser:
-    def __init__(self, name=''):
-        # self.name = name
-        # self.config = self.getConfig()
-        # self.cities = self.config['cities'].split(', ')
-
-        # random.shuffle(self.cities)
-        self.isHeadless = isHeadless
-        self.sourceDir = os.chdir('Responses')
+    def __init__(self):
+        self.sourceDir = os.chdir(ResponsesDir)
         self.sourcePath = os.path.abspath(os.getcwd())
         self.folders = self.getZips()
+
+        self.isHeadless = isHeadless
         self.options = self.optionsDriver()
         self.driver = self.initDriver()
         self.getURL('https://rosreestr.gov.ru/wps/portal/cc_vizualisation')
+
         self.treatment()
-        #
 
     def RecognizeCaptcha(self, CaptchaImage):
         try:
@@ -103,35 +98,34 @@ class Parser:
         folders = []
 
         for filename in os.listdir(self.sourceDir):
-            dir = filename.split('.zip')[0]
-            try:
-                os.mkdir(dir)
-                logging.info(f'Make dir for response: {dir}')
-            except Exception as ex:
-                pass
+            if filename.endswith('.zip') and filename.startswith('Response'):
+                dir = filename.split('.zip')[0]
+                try:
+                    os.mkdir(dir)
+                    logging.info(f'Make dir for response: {dir}')
+                except Exception as ex:
+                    pass
 
-            if filename.endswith('.zip'):
                 shutil.move(filename, f'{dir}/{filename}')
                 logging.info(f'Extractall: {dir}/{filename} to {dir}')
                 zipfile.ZipFile(f'{dir}/{filename}', 'r').extractall(f'{dir}')
-                # os.remove(filename)
                 os.remove(f'{dir}/{filename}')
 
-            folders.append(dir)
+                folders.append(dir)
 
-        logging.info(folders)
+        logging.info(f'Total folders/responses: {len(folders)}')
         return folders
 
-    def treatment(self):
-        for folder in self.folders:
-            logging.info(f'Get sig, zip, xml from {folder}')
-            files = os.listdir(folder)
-            logging.info(files)
-            # sig_file = f'{self.sourcePath}/{folder}/{files[0]}'
-            # zip_file = f'{self.sourcePath}/{folder}/{files[1]}'
+    def createZip(self, folder, cad):
+        with zipfile.ZipFile(f'{cad}_{folder}.zip', 'w') as zipObj2:
+            for f in os.listdir(folder):
+                logging.info(f'Add to zip: {f}')
+                zipObj2.write(f'{folder}/{f}')
 
-            # logging.info(f'Extractall zip_file')
-            # zipfile.ZipFile(zip_file, 'r').extractall(folder)
+    def treatment(self):
+        i = 1
+        for folder in self.folders:
+            logging.info(f'Get sig, zip, xml from {folder} ({i} из {len(self.folders)})')
 
             # logging.info('Get xml')
             for f in os.listdir(folder):
@@ -154,37 +148,44 @@ class Parser:
             act.send_keys(xml_file)
 
             captcha = self.getCaptcha()
-            logging.info(f'Обработаем капчу: {captcha}')
+            logging.info(f'Get captcha: {captcha}')
 
             self.driver.find_element_by_css_selector('input.brdg1111').send_keys(captcha)
-
             self.driver.find_element_by_xpath("//button[text()='Проверить ']").click()
-
             act = self.driver.find_element_by_link_text('Показать в человекочитаемом формате')
             act.click()
 
-            wait(1)
+            wait(2)
             handles = self.driver.window_handles
-            size = len(handles)
-            # print(size)
-            # for x in range(size):
             self.driver.switch_to.window(handles[1])
 
-            # print('-' * 30)
-            # print(f'!!! {self.driver.title}')
-
+            logging.info('Удаляем ненужный html-блок')
             element = self.driver.find_element_by_class_name('noprint')
             self.driver.execute_script("""
             var element = arguments[0];
             element.parentNode.removeChild(element);
             """, element)
 
-            with open(f'{folder}/{folder}.html', 'w') as f:
-                f.write(self.driver.page_source)
+            cad = self.driver.find_element_by_xpath(
+                '/html/body/table/tbody/tr/th/table/tbody/tr[1]/th/table[2]/tbody/tr[1]/th/table/tbody/tr[5]/td[2]/b').text
+
+            # with open(f'{folder}/{folder}.html', 'w') as f:
+            #     f.write(self.driver.page_source)
+
+            try:
+                logging.info(f'Convert html/page to pdf')
+                pdfkit.from_string(self.driver.page_source, f'{folder}/{folder}.pdf')
+            except:
+                pass
+
+            os.remove(xml_file)
+            self.createZip(folder, cad)
 
             self.driver.close()
-
             self.driver.switch_to.window(handles[0])
+
+            shutil.rmtree(folder)
+            i += 1
 
     def optionsDriver(self):
         options = Options()
@@ -256,9 +257,9 @@ class Parser:
 
 if __name__ == '__main__':
     logging.info('----------------')
-    logging.info('Parser is start')
+    logging.info('Bot is start')
     parser = Parser()
-    # logging.info(f"Total projects: {projects}")
+
     try:
         parser.driver.quit()
         logging.info(f'Driver is quit\n')
