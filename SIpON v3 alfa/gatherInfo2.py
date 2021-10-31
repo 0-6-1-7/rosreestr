@@ -18,7 +18,7 @@ def Convert(content):
         try: s = re.search(r[1], content, flags = re.MULTILINE | re.IGNORECASE).group(1)
         except: s = "Не указано для этого ОН или ошибка"
         
-        if r[0] == 1 and re.search(r"Актуально", s) == None: t = t + "\t" + s + "\t" * 5; break
+        if r[0] == 1 and re.search(r"Актуально", s) == None: t = s + "\t" * 6; break
 
         if r[0] == 8:
             if s != "Не указано для этого ОН или ошибка":
