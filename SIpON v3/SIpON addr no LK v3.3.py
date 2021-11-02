@@ -1,4 +1,4 @@
-from gatherInfo2 import Convert
+
 
 import os, re, sys, time
 import PIL
@@ -27,7 +27,6 @@ Status = None
 lbl_captcha = None
 txt_captcha = None
 
-##captchaimage = None
 ##------------------------------------------------------------##
 ##------------------------------------------------------------##
 ##------------------------------------------------------------##
@@ -105,7 +104,7 @@ def main():
     btn_3 = Button(AppWindow, text = "Обработка файла", command = RRgo, width = 15).grid(row = 6, column = 1, sticky = "we")
     btn_5 = Button(AppWindow, text = "Выход", command = RRquit).grid(row = 8, column = 3, sticky = "we")
 
-    lbl_about = Label(AppWindow, text = "Поиск по кадастровым номерам :: версия 3.3").grid(row = 9, column = 1, columnspan = 3, sticky = "w")
+    lbl_about = Label(AppWindow, text = "Поиск по адресу :: версия 3.3").grid(row = 9, column = 1, columnspan = 3, sticky = "w")
 
     Grid.columnconfigure(AppWindow, 0, minsize = 25)
     Grid.columnconfigure(AppWindow, 1, minsize = 150)
@@ -213,45 +212,39 @@ def RRgo():
             if x == None: break
             r = r + 1
         if r - 2 == rmax:  printStatus("Файл уже полностью обработан"); return
+
     ## добавить заголовок, если в файле его нет 
         if r == 2:
-            h = "Кадастровый номер\tСтатус объекта\tДата обновления информации\tВид объекта недвижимости\tПлощадь\tЕд. изм.\tАдрес\tНазначение или вид разрешенного использования\tПрава и ограничения".split("\t")
+            h = "Строка поиска\tНайдено кадастровых номеров".split("\t")
             for i in range(0, len(h)): ws.cell(row = 1, column = i + 1).value = h[i]
 
+    ## добавить лист с результататми текущего поиска
+        ws2 = wb.create_sheet("Sheet KNaddr")
+        r2 = ws2.max_row + 1
+        h = "Строка поиска\tКадастровый номер\tАдрес".split("\t")
+        for i in range(0, len(h)): ws2.cell(row = 1, column = i + 1).value = h[i]
+
+    ## обработка списка
         while True:
-## обработка порциями по 10 строк
-            D10 = dict()
-            Range10 = ws[f"A{r}" : f"I{r + 9}"] ## вся область данных - столбцы A:I
-            if Range10[0][0].value == None: printStatus(f"Файл полностью обработан за {round(time.monotonic() - t0, 2)} сек."); return
-            for row in Range10:
-                kn = row[0].value
-                if kn == None: continue
-                kn = kn.replace(" ", "")
-                row[0].value = kn
-                if kn == "": continue
-                if re.match(r"^\d{1,2}:\d{1,2}:\d{6,7}:\d{1,10}$", kn) == None:
-                    row[1].value = "это не кадастровый номер"
-                else:
-                    D10[kn] = ""
-            if len(D10) == 0: printStatus("Файл заполнен каким-то мусором"); return 
-            t = GetInfo10(D10)
-## на выходе либо ошибка
-            if t == "ERROR_KN_NOT_FOUND": t = "КН не найден или ошибка при поиске"
+            addr = ws.cell(row = r , column = 1).value
+            if addr == None: printStatus(f"Файл полностью обработан за {round(time.monotonic() - t0, 2)} сек."); return
+            t = GetInfoAddr(addr)            
+            if t == "ERROR_ADDR_NOT_FOUND": t = "Адрес не найден или ошибка при поиске"
             if t[:5] == "ERROR": wb.save(wbName); printStatus(t); return
-## либо словарь с результатами
-            for row in Range10:
-                kn = row[0].value
-                if kn == None: continue
-                if row[1].value != None: continue # это не кадастровый номер (уже записано в файле)
-                if D10[kn] == "": row[1].value = "Объект по кадастровому номеру не найден"; continue
-                t = D10[kn].split("\t")
-                for i in range(0, 8):
-                    if i == 3:
-                        try: row[i + 1].value = float(t[i])
-                        except: row[i + 1].value = t[i]
-                    else: row[i + 1].value = t[i]
-            wb.save(wbName)
-            r = r + 10
+            kns = t.split("\t")
+            knsl = len(kns)
+            ws.cell(row = r, column = 2).value = knsl
+            for i in range(0, knsl):
+                ka = kns[i].split("\n")
+                if ka[0] == "Информация не найдена":
+                    ws.cell(row = r, column = 2).value = "Информация не найдена"
+                else:
+                    ws2.cell(row = r2, column = 1).value = addr
+                    ws2.cell(row = r2, column = 2).value = ka[1]
+                    ws2.cell(row = r2, column = 3).value = ka[0]
+                    r2 = r2 + 1
+            if (r - 1) % 10 == 0: wb.save(wbName)
+            r = r + 1
             printProgress(f"Всего в файле строк: {rmax}, из них обработаны: {min(rmax, r - 2)} за {round(time.monotonic() - t0, 2)} сек.")
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -260,6 +253,7 @@ def RRgo():
     finally:
         printProgress("")
         wb.save(wbName)
+    
 
 ##------------------------------------------------------------##
 def CaptchaOK():
@@ -305,64 +299,45 @@ def HiCaptcha(img):
             elif abs(i[x,y] - m[x,y]) < 10: i[x,y] = 255
             if i[x,y] < 250: i[x,y] = 0
     return img
-
+    
 ##------------------------------------------------------------##
-def GetInfo10_test(D):
-    for d in D:
-        D[d] = "Статус объекта\tДата обновления информации\tВид объекта недвижимости\tПлощадь\tЕд. изм.\tАдрес\tНазначение или вид разрешенного использования\tПрава и ограничения"
-    return "OK"
-        
-##------------------------------------------------------------##
-def GetInfo10(D):
+def GetInfoAddr(addr):
     global RR
     if not CaptchaOK(): return "ERROR_CAPTCHA_WRONG"
     wait = WebDriverWait(RR, 5)
     try:
         sipono = wait.until(EC.visibility_of_element_located((By.ID, "sipono-selector")))
-        KNinput = sipono.find_element(By.CSS_SELECTOR, "input")
+        ADDRinput = sipono.find_element(By.CSS_SELECTOR, "input")
     except:
         return "ERROR_UNKNOWN_PAGE"
-
-    if KNinput.get_attribute("disabled"): return "ERROR_CAPTCHA_NOT_ENTERED"
-
-    KN10 =";".join(key for key, value in D.items())
-    results = None
-
+    if ADDRinput.get_attribute("disabled"): return "ERROR_CAPTCHA_NOT_ENTERED"
     n = 1
-    while KNinput.get_attribute("value") != "":
-        try:
-            KNclear = sipono.find_element(By.CSS_SELECTOR, "div.rros-ui-lib-dropdown__clear-indicator")
-            KNclear.click()
-        except:
-            pass
-        if KNinput.get_attribute("value") != "":
-            KNinput.send_keys(Keys.END)
-            KNinput.send_keys(Keys.BACKSPACE * len(KNinput.get_attribute("value")))
+    while ADDRinput.get_attribute("value") != "":
+        ADDRinput.send_keys(Keys.END)
+        ADDRinput.send_keys(Keys.BACKSPACE * (len(ADDRinput.get_attribute("value"))))
         n = n + 1
-        if n > 10: return "ERROR_CAN_NOT_CLEAR_KN_FIELD"
-    KNinput.send_keys(KN10)
+        if n > 10: return "ERROR_CAN_NOT_CLEAR_ADDR_FIELD"
+## подождать пока спрячется список объектов (от предыдущего поиска?)
+    ADDRinput.send_keys(Keys.ESCAPE)
+    n = 1
+    tmp = wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "div.rros-ui-lib-dropdown__menu")))
+    ADDRinput.send_keys(addr)
     time.sleep(1)
+    info = ""
 
-    wait = WebDriverWait(RR, 20)
+    wait = WebDriverWait(RR, 10)
+    n = 1
     try:
-        results = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "div.realestateobjects-wrapper__results")))
+        loo = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "div.rros-ui-lib-dropdown__menu")))
+##        if tmp: loo = find_element(By.CSS_SELECTOR, "div.rros-ui-lib-dropdown__menu"); break
     except:
-        return "ERROR_KN_FOUND_NOT_SHOWN"
-
-    resultrows = results.find_elements(By.CSS_SELECTOR, "div.rros-ui-lib-table__row")
-    if len(resultrows) > 0:
-        for row in resultrows:
-            kn = row.find_element(By.CSS_SELECTOR, "div > div > a").get_attribute("innerText")
-            row.click()
-            try:
-                reverselink = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "button.rros-ui-lib-button--reverse")))
-                objectinfo = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "div.realestate-object-modal        ")))
-            except:
-                return "ERROR_OBJECT_NOT_SHOWN"
-            info = Convert(objectinfo.get_attribute("innerText"))
-            RR.execute_script("arguments[0].click();", reverselink)
-            D[kn] = info
-    return "OK"
+        if not CaptchaOK(): return "ERROR_CAPTCHA_WRONG"
+        return "ERROR_ADDR_NOT_FOUND"
+    opts = loo.find_elements(By.CSS_SELECTOR, "div.rros-ui-lib-dropdown__option")
+    for opt in opts:
+        info = info + ("" if len(info) == 0 else "\t") + opt.get_attribute("innerText")
+    if len(opts) == 0: return f"Информация не найдена\n"
+    return info
 
 ##########################################################################
 RunFromIDLE = "idlelib" in sys.modules
