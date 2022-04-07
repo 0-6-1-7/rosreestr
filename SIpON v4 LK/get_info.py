@@ -110,7 +110,7 @@ def get_info_kn(RR, D):
                     try:
                         reverselink = wait.until(
                             EC.visibility_of_element_located(
-                                (By.CSS_SELECTOR, "button.rros-ui-lib-button--reverse")))
+                                (By.CSS_SELECTOR, "button.realestate-object-modal__btn.rros-ui-lib-button--reverse")))
                         objectinfo = wait.until(
                             EC.visibility_of_element_located(
                                 (By.CSS_SELECTOR, "div.realestate-object-modal")))
