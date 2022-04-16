@@ -335,14 +335,14 @@ def EGRN_go_search(f):
     try: wb = load_workbook(filename=wbName); ws=wb.worksheets[0]
     except: print("Пробема с файлом: невозможно открыть и т.д."); return
 
-    rows_total=ws.max_row - 1
+    rows_total = ws.max_row - 1
     if rows_total < 1: print("Пустой файл"); return
 
 ## лист со списком адресов
 ## пропустить обработанные строки
     for row in range(2, rows_total + 1 + 1):
         if ws.cell(row=row, column=10).value is None: row = row - 1; break
-    rows_done=row - 1
+    rows_done = row - 1
     if rows_done == rows_total:  print("Файл уже полностью обработан"); return
 
 ## лист с результататми текущего поиска
@@ -366,9 +366,10 @@ def EGRN_go_search(f):
         while True:
             print(f"\nСтрока {row1 - 1} из {rows_total}: ")
             data = [text_of_cell(ws.cell(row=row1,column=i).value) for i in range(3,10)]
-            if data[0] is None:
+            if data[0] == "":
                 print(f"Файл {f} полностью обработан за {round(time.monotonic() - t0, 2)} сек.")
-                return "OK"
+                wb.save(wbName)
+                return "DONE"
             objects_info = EGRN_search(data)
             if objects_info == "ERROR": return "ERROR"
 
@@ -444,7 +445,7 @@ def go(f):
     try:
         while True:
             result = EGRN_go_search(f)
-            if result == "OK":
+            if result == "DONE":
                 break
             else:
                 PREV_DATA = [None] * 7
