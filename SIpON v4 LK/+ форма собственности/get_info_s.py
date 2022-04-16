@@ -26,7 +26,7 @@ def convert(content):
         try: s = re.search(r[1], content, flags=re.MULTILINE | re.IGNORECASE).group(1)
         except: s = "Не указано для этого ОН или ошибка"
 
-        if r[0] == 1 and re.search(r"Актуально", s) is None: t = s + "\t" * 7; break
+        if r[0] == 1 and re.search(r"Актуально", s) is None: t = s + "\t" * 8; break
 
         if r[0] == 8:
             if s != "Не указано для этого ОН или ошибка":
