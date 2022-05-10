@@ -51,7 +51,7 @@ if SeleniumOK:
         print("- Ошибка: версии Crhrome и ChromeDriver несовместимы")
 
 if PILOK and SeleniumOK and OpenpyxlOK and ChromeDriverOK and ChromeOK: print("\n\n\nВсё хорошо. Можно закрыть окно.")
-else: print("\n\n\nОбнаружены проблемы. Дальнейшая раота, скорее всего, невозможна.")
+else: print("\n\n\nОбнаружены проблемы. Дальнейшая работа, скорее всего, невозможна.")
 
 import time
 time.sleep(1000)
