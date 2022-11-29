@@ -1,4 +1,4 @@
-import os, re, sys, time
+import os, re, sys
 
 from datetime import datetime
 
@@ -74,46 +74,98 @@ def convert(content):
 
 # ------------------------------------------------------------ #
 def get_info_kn(RR, kn):
+    ## по умолчанию любой поиск выполняется с таймаутом 1 секунда
+    wait_1 = WebDriverWait(RR, 1)
+    wait_15 = WebDriverWait(RR, 15)
+
     try: #wrap for any return
-        wait = WebDriverWait(RR, 5)
-        print(1)
-        try: sipono = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "div.rros-ui-lib-title")))
-        except: return "FATAL_ERROR_UNKNOWN_PAGE"
-        print(2)
+        ## проверям заголовок страницы
+        try: sipono = wait_1.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "div.rros-ui-lib-title")))
+        except: return "FATAL_ERROR_PAGE_UNKNOWN"
+
         page_title = sipono.get_attribute("innerText")
+
         if page_title != "Справочная информация по объектам недвижимости в режиме online":
-            return "FATAL_ERROR_UNKNOWN_PAGE"
-        print(3)
-        kn_input = RR.find_element(By.ID, "query")
+            return "FATAL_ERROR_PAGE_UNKNOWN"
+
+        ## ждём появления кнопки поиска (как индиактор полной загрузки страницы)
+        t0 = monotonic()
+        while True:
+            ## ожидание длится более 60 секунд, на выход с ошибкой
+            if monotonic() - t0 > 60: return "FATAL_ERROR_PAGE_NOT_FULLY_LOADED"
+
+            try: search_button = wait_1.until(EC.visibility_of_element_located((By.ID, "realestateobjects-search")))
+            except: search_button = None
+
+            if search_button is not None:                
+                ## дождались, можно продолжать
+                break 
+
         
-        n = 1
+        ## ввод кадастрового номера в поле
+        kn_input = RR.find_element(By.ID, "query")
         kn_input.click()
+
         if kn_input.get_attribute("value") != "":
             kn_input.send_keys(Keys.BACKSPACE * len(kn_input.get_attribute("value")))
 
-        try:
-            prev_results = RR.find_element(By.CSS_SELECTOR, "div.realestateobjects-wrapper__results")
-        except:
-            prev_results = None
-
         kn_input.send_keys(kn)
-        search_button = RR.find_element(By.ID, "realestateobjects-search")
-        search_button.click()
 
+        ## ждём активизациикнопки поиска
         t0 = monotonic()
         while True:
-            results = RR.find_element(By.CSS_SELECTOR, "div.realestateobjects-wrapper__results")
-            results_text = results.get_attribute("innerText")
-            if kn in results_text: break
-            if "По заданным критериям поиска объекты не найдены" in results_text and results != prev_results:
-                return (kn, None)
-            sleep(1)
-            if monotonic() - t0 > 60: return "ERROR_SEARCH_FAILED"
+            ## ожидание длится более 60 секунд, на выход с ошибкой
+            if monotonic() - t0 > 60:
+                return
 
+            if not search_button.get_attribute("disabled"):
+                ## дождались, можно продолжать
+                break 
+
+        ## запускаем поиск
+        search_button.click()
+
+        ## ждём появления блока спиннера
+        try:
+            spinner = wait_15.until(EC.presence_of_element_located(
+                (By.CSS_SELECTOR, "div.rros-ui-lib-spinner__wrapper")))
+        except:
+            ## блок спиннера не найден; возможно, поиск отработал слишком быстро и мы потеряли на этом 10 секунд
+            spinner = None
+
+        ## ждём пропадания блока спиннера
+        t0 = monotonic()
+        while spinner:
+            ## ожидание длится более 60 секунд, на выход с ошибкой
+            if monotonic() - t0 > 60:
+                return
+            
+            try:
+                spinner = wait_1.until(EC.presence_of_element_located(
+                    (By.CSS_SELECTOR, "div.rros-ui-lib-spinner__wrapper")))
+            except:
+                spinner = None
+        
+        ## поиск закончился, обрабатываем результат
+        ## блок результатов 
+        try:
+            results = RR.find_element(By.CSS_SELECTOR, "div.realestateobjects-wrapper__results")
+        except:
+            return "ERROR_SEARCH_FAILED"
+
+        results_text = results.get_attribute("innerText")
+
+        ## По заданным критериям поиска объекты не найдены
+        if "По заданным критериям поиска объекты не найдены" in results_text:
+            return "Объект по кадастровому номеру не найден"
+
+        ## КН отсутствует в результатах поиска
+        if kn not in results_text:
+            return "ERROR_SEARCH_FAILED"
 
         data_rows = RR.find_elements(By.CSS_SELECTOR, "div.rros-ui-lib-table__row")
-        data_rows[0].click()
 
+        data_rows[0].click()
 
         wait = WebDriverWait(RR, 60)
         try:
@@ -124,13 +176,11 @@ def get_info_kn(RR, kn):
             return "ERROR_KN_FOUND_NOT_SHOWN"
 
         object_info = convert(object_info_window.get_attribute("innerText"))
-        reverse_link = wait.until(
+        reverse_link = wait_1.until(
             EC.visibility_of_element_located(
                 (By.CSS_SELECTOR, "button.realestate-object-modal__btn.rros-ui-lib-button--reverse")))
         reverse_link.click()
-        
 
-        print("get_info_kn отработало нормально")
         return object_info
 
     except:
@@ -140,14 +190,14 @@ def get_info_kn(RR, kn):
         print(f"При выполнении возникло исключение {exc_type}\n"
             f"\tописание:\t{exc_obj}\n"
             f"\tмодуль:\t\t{fname}\tстрока:\t{exc_tb.tb_lineno}")
-        return  "NOTIF$произошла какая-то хрень в get_info_kn"
+        return  "NOTIF$произошло исключение в get_info_kn"
 
 # ------------------------------------------------------------ #
 def get_info_addr(RR, data, D):
     try: #wrap for any return
         wait = WebDriverWait(RR, 5)
         try: sipono = wait.until(EC.visibility_of_element_located((By.ID, "sipono-selector")))
-        except: return "FATAL_ERROR_UNKNOWN_PAGE"
+        except: return "FATAL_ERROR_PAGE_UNKNOWN"
 
         data_input = sipono.find_element(By.CSS_SELECTOR, "input")
         n = 1
