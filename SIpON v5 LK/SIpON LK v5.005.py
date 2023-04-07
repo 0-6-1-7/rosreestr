@@ -342,6 +342,8 @@ def RRgo():
         if SEARCH_TYPE == "KN": RRgoKN()
         elif SEARCH_TYPE == "addr": RRgoAddr()
 
+        if return_status is None:
+            continue
         if return_status in "FATAL;OK":
             break
         RR.refresh
@@ -409,18 +411,21 @@ def RRgoKN():
             else:
                 while monotonic() - t1 < 5:
                     sleep(1)
-                object_info = get_info_kn(RR, kn)
-                t1 = monotonic()
+                result = get_info_kn(RR, kn, t1)
+                t1 = result['timeout_start']
 
 ## на выходе 
             ## либо строка с ошибкой
-            if object_info[:5] in "ERROR;FATAL":
-                save_time_mark = wb.save(wbName); print_status(object_info)
-##                check_notifications(RR)
-            if object_info[:5] in "ERROR":
-                return "REFRESH"
-            if object_info[:5] in "FATAL":
-                return "STOP"
+            object_info = result['object_info']                
+            if object_info is not None:
+                if object_info[:5] in "ERROR;FATAL":
+                    wb.save(wbName)
+                    return "STOP"
+    ##                check_notifications(RR)
+##                if object_info[:5] in "ERROR":
+##                    return "REFRESH"
+##                if object_info[:5] in "FATAL":
+##                    return "STOP"
 
             ## либо строка с результатами, разделитель \t
             t = object_info.split("\t")

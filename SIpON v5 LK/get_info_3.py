@@ -14,6 +14,14 @@ from selenium.common.exceptions import InvalidSessionIdException, NoSuchElementE
 def get_header():
     return convert("header")
 
+def wait_timeout(timeout_start, timeout, msg):
+    print(f"\tТаймаут {timeout} секунд ", end='')
+    while monotonic() - timeout_start < timeout:
+        print('>', end='')
+        sleep(1)
+    print(f" {msg}")
+
+
 # ------------------------------------------------------------ #
 def convert(content):
     rs = [
@@ -22,9 +30,9 @@ def convert(content):
         (3, "(?:Вид объекта недвижимости\n)(.*)(?:\n)", "Вид объекта недвижимости"),
         (4, "(?:Площадь,.*\n)(.*)(?:\n)", "Площадь"),
         (5, "(?:Площадь, )(.*)(?:\n)", "Ед. изм."),
-        (6, "(?:Адрес[а]* \(местоположение\)\n)(.*?)(?:\n)", "Адрес"),
+        (6, "(?:Адрес[а]* \(местоположение\)\n)(.*)(?:\n)", "Адрес"),
         (7, "(?:(?:Назначение)\n|(?:Вид разрешенного использования)\n)(.*)(?:\n)", "Назначение или вид разрешенного использования"),
-        (8, "(?:Вид, номер и дата государственной регистрации права\n)((?:.*\n*)*)", "Дата последенего перехода права")
+        (8, "(?:Вид, номер и дата государственной регистрации права\n)((?:.*\n)*)", "Дата последенего перехода права")
         ]
 
 ### дополнительные сведения
@@ -73,7 +81,9 @@ def convert(content):
     return t
 
 # ------------------------------------------------------------ #
-def get_info_kn(RR, kn):
+def get_info_kn(RR, kn, timeout_start):
+    ## timeout_start - точка отсчёта для таймаута 5 секунд
+    
     ## по умолчанию любой поиск выполняется с таймаутом 1 секунда
     wait_1 = WebDriverWait(RR, 1)
     wait_15 = WebDriverWait(RR, 15)
@@ -123,7 +133,12 @@ def get_info_kn(RR, kn):
                 break 
 
         ## запускаем поиск
+
+        ## нововведение от 22.02.23 - таймаут 5 секунд
+        wait_timeout(timeout_start, 5, "поиск")
+
         search_button.click()
+        t0 = monotonic()
 
         ## ждём появления блока спиннера
         try:
@@ -134,7 +149,6 @@ def get_info_kn(RR, kn):
             spinner = None
 
         ## ждём пропадания блока спиннера
-        t0 = monotonic()
         while spinner:
             ## ожидание длится более 60 секунд, на выход с ошибкой
             if monotonic() - t0 > 60:
@@ -165,11 +179,13 @@ def get_info_kn(RR, kn):
 
         data_rows = RR.find_elements(By.CSS_SELECTOR, "div.rros-ui-lib-table__row")
 
-        ## нововведение от 21.02.23 - таймаут 3 секунды
-        while monotonic() - t0 < 5:
-            sleep(1)
+        ## нововведение от 22.02.23 - таймаут 5 секунд от нажатия на кнопку поиска
+        wait_timeout(t0, 5, "сбор сведений")
 
         data_rows[0].click()
+
+        ## зафикисруем время для отсчёта нового таймаута, возвращается в основную программу
+        timeout_start = monotonic()
 
         wait = WebDriverWait(RR, 60)
         try:
@@ -185,7 +201,7 @@ def get_info_kn(RR, kn):
                 (By.CSS_SELECTOR, "button.realestate-object-modal__btn.rros-ui-lib-button--reverse")))
         reverse_link.click()
 
-        return object_info
+        return {"object_info":object_info, "timeout_start":timeout_start}
 
     except:
         print("произошло исключение в get_info_kn")
