@@ -8,6 +8,8 @@ from datetime import datetime
 
 from time import monotonic, sleep
 
+from math import floor
+
 from tkinter import *
 from tkinter.filedialog import askopenfilename
 from tkinter.ttk import *
@@ -292,18 +294,16 @@ def get_with_ESIA_auth(RR, url):
 
     t0 = monotonic()
     while True:
-        print(monotonic(), t0, monotonic() - t0, AUTH_TIMEOUT)
+        print_status(f"Выполняется авторизация в ЕСИА, прошло {floor(monotonic() - t0)} сек. из {AUTH_TIMEOUT}")
         if monotonic() - t0 > AUTH_TIMEOUT:
             return "ESIA_ERROR_TIMEOUT"
         
         current_url = RR.current_url.lower()
-        print(current_url)
 
         if "lk.rosreestr.ru/" in current_url and "lk.rosreestr.ru/login" not in current_url:
             return "OK"
 
         if "esia.gosuslugi.ru/login/" in current_url:
-            print(2)
             try:
                 form_container = RR.find_element(By.CSS_SELECTOR, "div.form-container")
                 form_login = form_container.find_element(By.ID, "login")
@@ -321,7 +321,6 @@ def get_with_ESIA_auth(RR, url):
                 None
 
         if "lk.rosreestr.ru/login" in current_url:
-            print(3)
             if esia_role_name is not None or esia_role_index is not None:
                 try:
                     wait = WebDriverWait(RR, AUTH_TIMEOUT)
@@ -335,7 +334,7 @@ def get_with_ESIA_auth(RR, url):
                                 button.click()
                                 break
                     elif esia_role_index is not None:
-                        button = buttons[esia_role_index - 1]
+                        button = buttons[int(esia_role_index) - 1]
                         button.click()
                 except:
                     None
