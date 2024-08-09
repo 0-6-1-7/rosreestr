@@ -8,6 +8,7 @@ function LinksList() {
     } else {
       let result = '';
       let myEmail = '';
+      let linkCounter = 1;
       for (thread of threads) {
         const messages = thread.getMessages();
         for (message of messages) {
@@ -15,7 +16,8 @@ function LinksList() {
           const messageSubj = message.getSubject()
           const link = getLinkFromBody(messageBody);
           myEmail = message.getTo()
-          result += String(`<a href="${link}">${messageSubj}<br>`);
+          result += String(`${linkCounter}.&nbsp;<a href="${link}">${messageSubj}</a><br>`);
+          linkCounter ++;
           GmailApp.starMessage(message);
           GmailApp.markMessageRead(message);
         }
