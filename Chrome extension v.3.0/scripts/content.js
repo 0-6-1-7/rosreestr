@@ -73,14 +73,16 @@ function waitModal () {
 			};
 			let poe = false;
 			let soe = false;
-			let kne;
+			let kne = null;
 			let kneColor;
 			elements = document.querySelectorAll('li.build-card-wrapper__info__ul__subinfo');
 			for (const e of elements) {
 				const h = e.querySelector('span.build-card-wrapper__info__ul__subinfo__name');
 				switch (h.innerText) {
 					case 'Кадастровый номер':
-						kne = e;
+						if (!kne) {
+							kne = e;
+						};
 						break;
 					case 'Статус объекта':
 						soe = e.querySelector('div.build-card-wrapper__info__ul__subinfo__options__item__line').innerText == 'Актуально';
