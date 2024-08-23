@@ -11,7 +11,7 @@
 ![Установка расширения](https://github.com/0-6-1-7/rosreestr/blob/master/Chrome%20extension%20v.3.0/screenshots/0.png)
 
 
-### Внешний вид страниц с работающим расширением
+### Внешний вид страниц с работающим расширением (во обоих случаях установлен масштаб страницы 90%)
 
 ![Установка расширения](https://github.com/0-6-1-7/rosreestr/blob/master/Chrome%20extension%20v.3.0/screenshots/1.png)
 
