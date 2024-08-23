@@ -1,0 +1,24 @@
+{
+	"manifest_version": 3,
+
+	"name": "Помощь с Росреестром",
+	"version": "3.0",
+	"description": "Помощь с Росреестром",
+	
+	"permissions": ["clipboardWrite"],
+
+	"content_scripts": [
+	{
+		"js": ["scripts/content.js"],
+		"matches": [
+			"https://lk.rosreestr.ru/eservices/real-estate-objects-online"
+		]
+    }
+	],
+  
+	"icons": {
+		"16": "images/icon-16.png",
+		"48": "images/icon-48.png",
+		"128": "images/icon-128.png"
+	}
+}
