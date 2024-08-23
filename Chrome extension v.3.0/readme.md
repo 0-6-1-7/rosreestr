@@ -1,4 +1,4 @@
-###Установка расширения.
+### Установка расширения.
 
 +Скачать все файлы, сохранить в люую удобную папку
 
@@ -11,7 +11,8 @@
 ![Установка расширения](https://github.com/0-6-1-7/rosreestr/blob/master/Chrome%20extension%20v.3.0/screenshots/0.png)
 
 
-###
-Внешний вид страниц с работающим расширением
+### Внешний вид страниц с работающим расширением
 
+![Установка расширения](https://github.com/0-6-1-7/rosreestr/blob/master/Chrome%20extension%20v.3.0/screenshots/1.png)
 
+![Установка расширения](https://github.com/0-6-1-7/rosreestr/blob/master/Chrome%20extension%20v.3.0/screenshots/2.png)
