@@ -1,8 +1,11 @@
-async function writeClipboardText(text) {
+async function writeClipboardText(element) {
 	try {
+		const text = element.querySelector('div.build-card-wrapper__info__ul__subinfo__options__item__line').innerText;
 		await navigator.clipboard.writeText(text);
+		element.style.backgroundColor = 'rgb(85, 187, 85)'
 	} catch (error) {
 		console.error(`Exception. ${error.name}: ${error.message}`);
+		element.style.backgroundColor = 'rgb(187, 85, 85)'
 	}
 }
 
@@ -30,7 +33,7 @@ function waitDOM () {
 				e.style.paddingBottom = 0;
 		};
 	};
-		setTimeout(waitDOM, 300); // 300 milliseconds
+		setTimeout(waitDOM, 300);
 }
 
 function waitResults () {
@@ -94,16 +97,16 @@ function waitModal () {
 				};
 			};
 			if (soe && poe) {
-				kneColor = kne.style.backgroundColor
-				if (kneColor == '') {
+				kneColor = kne.style.backgroundColor;
+				if (kneColor != 'rgb(85, 187, 85)') {
 					if (window.isSecureContext) {
 						const kn = kne.querySelector('div.build-card-wrapper__info__ul__subinfo__options__item__line').innerText;
 						try {
-							writeClipboardText(kn);
+							writeClipboardText(kne);
 						 } catch (error) {
 							console.error(`Exception. ${error.name}: ${error.message}`);
 						 };
-						 kne.style.backgroundColor = '#55bb55'
+						 //kne.style.backgroundColor = '#55bb55'
 					};
 				};
 			};
