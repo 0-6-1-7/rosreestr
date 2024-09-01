@@ -1,0 +1,102 @@
+#headerNavLinks {
+	display: none
+}
+
+/* заголовок страницы */
+.rros-ui-lib-title.rros-ui-lib-title--1 {
+	margin-top: 0px !important;
+	margin-bottom: 0px !important;
+	font-size: 18px !important;
+}
+
+/*форма поиска*/
+.realestateobjects-wrapper.card {
+	margin-bottom: 0px !important;
+	padding-top: 0px !important;
+	padding-bottom: 0px !important;
+}
+
+.realestateobjects-wrapper__option {
+	margin-top: 0px !important;
+	margin-bottom: 0px !important;
+}
+
+label.rros-ui-lib-input-wrapper {
+	margin-bottom: 0px !important;
+	padding-top: 0px !important;
+	padding-bottom: 0px !important;
+}
+
+/*результаты поиска*/
+.row.realestateobjects-wrapper__results {
+	margin-top: 0px !important;
+}
+
+.rros-ui-lib-table__header {
+	display: none !important;
+}
+
+.realestateobjects-wrapper__results__total-count {
+	margin-bottom: 0px !important;
+}
+
+.rros-ui-lib-table__row .rros-ui-lib-table__cell:first-child {
+	flex: 130 0 auto !important;
+	min-width: 130px !important;
+	width: 130px !important;
+	padding-top: 10px !important;
+	padding-bottom: 10px !important;
+}
+
+.rros-ui-lib-table__row .rros-ui-lib-table__cell:nth-child(2) {
+	flex: 240 0 auto !important;
+	min-width: 240px !important;
+	width: 240px !important;
+	padding-top: 10px !important;
+	padding-bottom: 10px !important;
+}
+
+.rros-ui-lib-table__row .rros-ui-lib-table__cell {
+	flex: 70 0 auto !important;
+	min-width: 70px !important;
+	width: 70px !important;
+	padding-top: 10px !important;
+	padding-bottom: 10px !important;
+}
+
+
+/*сведения об объекте*/
+.realestate-object-modal,
+h1.realestate-object-modal__h1,
+.build-card-wrapper__info,
+h3,
+ul.build-card-wrapper__info__ul,
+li.build-card-wrapper__info__ul__subinfo
+ {
+	margin-top: 0 !important;
+	margin-bottom: 0 !important;
+}
+
+/*для работы с отображением сведений*/
+/*Погашено*/
+[so-type='closed'] {
+	background-color: rgb(255, 50, 50) !important;
+}
+/*Актуально - со сведениями о правах*/
+[so-type='active'] {
+	background-color: rgb(85, 187, 85) !important;
+}
+/*Актуально - со сведениями о правах*/
+[so-type='inactive'] {
+	background-color: rgb(00, 114, 255) !important;
+}
+
+/*кадастровый номер*/
+/*скопировано*/
+[kn-status='copied'] {
+	background-color: rgb(85, 187, 85) !important;
+}
+/*ошибка при копировании (страница неактивна*/
+[kn-status='error'] {
+	background-color: rgb(187, 85, 85) !important;
+}
