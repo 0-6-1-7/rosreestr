@@ -1,7 +1,7 @@
 async function writeClipboardText(element1, element2) {
 //element1 - кадастровый номер (для раскрашивания), element2 - элемент, из которго будет взят innerText для буфера
 	try {
-		const textToCopy = element2.innerText;
+		const textToCopy = String(element2.innerText).replace(/\n$/, '');
 		await navigator.clipboard.writeText(textToCopy);
 		element1.setAttribute('kn-status', 'copied');
 	} catch (error) {
@@ -56,7 +56,7 @@ function waitModal () {
 								if (window.isSecureContext) {
 									switch (state) {
 										case '34':
-											etc = kne;
+											etc = kne.querySelector('div.build-card-wrapper__info__ul__subinfo__options__item__line');
 											break;
 										case 'i':
 											etc = document.querySelector('div.build-card-wrapper.card')
