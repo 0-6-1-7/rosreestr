@@ -40,6 +40,10 @@ label.rros-ui-lib-input-wrapper {
 	margin-bottom: 0px !important;
 }
 
+.rros-ui-lib-table__cell:hover {
+	background-color: rgb(187, 227, 216) !important;
+}
+
 .rros-ui-lib-table__row .rros-ui-lib-table__cell:first-child {
 	flex: 130 0 auto !important;
 	min-width: 130px !important;

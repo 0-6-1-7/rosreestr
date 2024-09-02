@@ -1,9 +1,11 @@
+const rr = 'https://lk.rosreestr.ru/eservices/real-estate-objects-online';
+
 chrome.runtime.onInstalled.addListener(() => {
 	chrome.action.setBadgeText({ text: 'Выкл', });
 	chrome.storage.local.set({ state: 'Выкл' }).then(() => {});
+	
 });
 
-const rr = 'https://lk.rosreestr.ru/eservices/real-estate-objects-online';
 
 chrome.action.onClicked.addListener(async (tab) => {
 	if (tab.url.startsWith(rr)) {
@@ -26,8 +28,10 @@ chrome.action.onClicked.addListener(async (tab) => {
 			text: nextState,
 		});
 		
+		const response = await chrome.tabs.sendMessage(tab.id, {state: nextState});
+
 		chrome.storage.local.set({ state: nextState }).then(() => {});
-		
+			
 		if (nextState === '34') { //inject CSS just once
 			await chrome.scripting.insertCSS({
 				files: ['styles/focus-mode.css'],
@@ -45,5 +49,3 @@ chrome.action.onClicked.addListener(async (tab) => {
 		};
 	};
 });
-
-
