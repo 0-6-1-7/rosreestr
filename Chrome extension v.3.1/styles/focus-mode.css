@@ -43,6 +43,9 @@ label.rros-ui-lib-input-wrapper {
 .rros-ui-lib-table__cell:hover {
 	background-color: rgb(187, 227, 216) !important;
 }
+.rros-ui-lib-table__row:hover {
+	background-color: rgb(187, 227, 216) !important;
+}
 
 .rros-ui-lib-table__row .rros-ui-lib-table__cell:first-child {
 	flex: 130 0 auto !important;
@@ -103,4 +106,23 @@ li.build-card-wrapper__info__ul__subinfo
 /*ошибка при копировании (страница неактивна*/
 [kn-status='error'] {
 	background-color: rgb(187, 85, 85) !important;
+}
+
+/*кнопки copy/paste*/
+.my-button {
+	position: absolute !important;
+	cursor: pointer !important;
+/*	transform: translateY(-50%) !important;*/
+}
+
+.my-button > svg:hover {
+	fill: #008cff !important;
+}
+.my-button-adj-right {
+	top: 50% !important;
+	transform: translate(+20%, -50%) !important;
+}
+
+.my-button-adj-left {
+	transform: translateX(-120%) !important;
 }
