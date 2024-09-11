@@ -12,8 +12,8 @@ chrome.runtime.onMessage.addListener(
 			case '34':
 			case ' П ':
 			case ' i ':
-				let b = document.querySelector('#my-button-paste');
-				if (!b) { insertButtonPaste() };
+				let button = document.getElementById('my-button-paste');
+				if (!button) { insertButtonPaste() };
 				break;
 		};
 			
@@ -21,39 +21,39 @@ chrome.runtime.onMessage.addListener(
 	}
 );
 
-//placeholders - функция вставки не работает
-function insertButtonPaste () {}
-function removeButtonPaste() {}
-
-/*
 function insertButtonPaste () {
 	let element = document.querySelector('input.realestateobjects-wrapper__option_input');
 	if (!element) { return };
-	let b = document.createElement('span');
-	buttonSVG = '<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h167q11-35 43-57.5t70-22.5q40 0 71.5 22.5T594-840h166q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560h-80v120H280v-120h-80v560Zm280-560q17 0 28.5-11.5T520-800q0-17-11.5-28.5T480-840q-17 0-28.5 11.5T440-800q0 17 11.5 28.5T480-760Z"/></svg>';
-	b.id = 'my-button-paste';
-	b.setAttribute('my-button-type', 'paste');
-	b.setAttribute('title', 'Вставить в поле текст из буфера обмена');
-	b.classList.add('my-button', 'my-button-adj-right');
-	element.insertAdjacentElement('afterend', b);
-	b.insertAdjacentHTML('afterbegin', buttonSVG);
-	b.addEventListener('click', clickButtonPaste);	
+	const buttonSVG = '<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h167q11-35 43-57.5t70-22.5q40 0 71.5 22.5T594-840h166q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560h-80v120H280v-120h-80v560Zm280-560q17 0 28.5-11.5T520-800q0-17-11.5-28.5T480-840q-17 0-28.5 11.5T440-800q0 17 11.5 28.5T480-760Z"/></svg>';
+	let button = document.createElement('span');
+	button.id = 'my-button-paste';
+	button.setAttribute('title', 'Вставить в поле текст из буфера обмена');
+	button.classList.add('my-button', 'my-button-adj-right');
+	element.insertAdjacentElement('afterend', button);
+	button.insertAdjacentHTML('afterbegin', buttonSVG);
+	button.addEventListener('click', clickButtonPaste);	
 }
 
 function removeButtonPaste() {
-	const b = document.querySelector('#my-button-paste');
-	b.remove();
+	const button = document.getElementById('my-button-paste');
+	button.remove();
 }
 
 function clickButtonPaste(event) {
-	console.log('функция не работает, спасибо разработчикам'); return;
-	//const i = e.target.closest('div').querySelector('input');
-	const i = document.querySelector('#query');
-	navigator.clipboard
-		.readText()
-		.then((clipText) => (i.setAttribute('value', clipText)));
+	const input = document.getElementById('query');
+//	const button = document.getElementById('realestateobjects-search');
+//	console.log(button);
+	navigator.clipboard.readText().then((clipText) => {
+		const regex = /^ *\d{2} *: *\d{2} *: *\d{1,7} *: *\d+ *$/;
+		let text = String(clipText);
+		if (text.match(regex)) { text = text.replace(/ /g, '') };
+		input.focus();
+		document.execCommand('selectAll');
+		document.execCommand('insertText', false, text);
+//			console.log(clipText);
+//			button.click();
+	});
 }
-*/
 
 function insertButtonsCopy() {
 	const buttonSVG = '<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M360-240q-33 0-56.5-23.5T280-320v-480q0-33 23.5-56.5T360-880h360q33 0 56.5 23.5T800-800v480q0 33-23.5 56.5T720-240H360Zm0-80h360v-480H360v480ZM200-80q-33 0-56.5-23.5T120-160v-560h80v560h440v80H200Zm160-240v-480 480Z"/></svg>';
@@ -62,12 +62,11 @@ function insertButtonsCopy() {
 	let button = null;
 	
 	//Кадастровый номер
-	button = document.querySelector('#my-button-copy-1');
+	button = document.getElementById('my-button-copy-1');
 	if (!button) {
 		element = getElementKN();
 		button = document.createElement('span');
 		button.id = 'my-button-copy-1';
-		button.setAttribute('my-button-type', 'copy');
 		button.setAttribute('title', 'Скопировать кадастровый номер');
 		button.classList.add('my-button', 'my-button-adj-left');
 		element.insertAdjacentElement('afterbegin', button);
@@ -76,12 +75,11 @@ function insertButtonsCopy() {
 	};
 
 	//Сведения о правах
-	button = document.querySelector('#my-button-copy-2');
+	button = document.getElementById('my-button-copy-2');
 	if (!button) {
 		element = getElementPO();
 		button = document.createElement('span');
 		button.id = 'my-button-copy-2';
-		button.setAttribute('my-button-type', 'copy');
 		button.setAttribute('title', 'Скопировать сведения о правах');
 		button.classList.add('my-button', 'my-button-adj-left');
 		element.insertAdjacentElement('afterbegin', button);
@@ -90,13 +88,12 @@ function insertButtonsCopy() {
 	};
 
 	//Сведения об объекте
-	button = document.querySelector('#my-button-copy-3');
+	button = document.getElementById('my-button-copy-3');
 	if (!button) {
 		element = document.querySelector('h1');
 	//	if (!e3) { return };
 		button = document.createElement('span');
 		button.id = 'my-button-copy-3';
-		button.setAttribute('my-button-type', 'copy');
 		button.setAttribute('title', 'Скопировать полностью все данные');
 		button.classList.add('my-button', 'my-button-adj-left');
 		element.insertAdjacentElement('afterbegin', button);
@@ -155,16 +152,16 @@ function clickButtonCopy3(e) {
 	writeClipboardText(null, textToCopy);
 }
 function removeButtonsCopy() {
-	let b = null;
+	let button = null;
 	
-	b = document.querySelector('#my-button-copy-1');
-	if (b) { b.remove() };
+	button = document.getElementById('my-button-copy-1');
+	if (button) { button.remove() };
 	
-	b = document.querySelector('#my-button-copy-2');
-	if (b) { b.remove() };
+	button = document.getElementById('my-button-copy-2');
+	if (button) { button.remove() };
 	
-	b = document.querySelector('#my-button-copy-3');
-	if (b) { b.remove() };
+	button = document.getElementById('my-button-copy-3');
+	if (button) { button.remove() };
 }
 
 //34

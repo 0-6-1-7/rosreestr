@@ -16,7 +16,7 @@
 		"128": "images/icon-128.png"
 	},
 
-	"permissions": ["clipboardWrite", "activeTab", "scripting", "storage"],
+	"permissions": ["clipboardWrite", "clipboardRead", "activeTab", "scripting", "storage"],
 
 	"host_permissions": ["https://lk.rosreestr.ru/eservices/real-estate-objects-online"],
 
