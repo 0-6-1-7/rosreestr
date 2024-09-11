@@ -44,13 +44,12 @@ function clickButtonPaste(event) {
 //	const button = document.getElementById('realestateobjects-search');
 //	console.log(button);
 	navigator.clipboard.readText().then((clipText) => {
-		const regex = /^ *\d{2} *: *\d{2} *: *\d{1,7} *: *\d+ *$/;
+		const regex = /^ *\d{2} *: *\d{2} *: *\d{1,7} *: *\d+\s*$/;
 		let text = String(clipText);
-		if (text.match(regex)) { text = text.replace(/ /g, '') };
+		if (text.match(regex)) { text = text.replace(/\s/g, '') };
 		input.focus();
 		document.execCommand('selectAll');
 		document.execCommand('insertText', false, text);
-//			console.log(clipText);
 //			button.click();
 	});
 }
