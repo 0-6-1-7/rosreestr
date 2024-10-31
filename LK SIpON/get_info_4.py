@@ -88,12 +88,12 @@ def convert(content):
     return t
 
 # ------------------------------------------------------------ #
-def get_info_kn(RR, kn, timeout_start):
+def get_info_kn(RR, kn, timeout_start, timeout):
     ## timeout_start - точка отсчёта для таймаута 5 секунд
     
     ## по умолчанию любой поиск выполняется с таймаутом 1 секунда
     wait_3 = WebDriverWait(RR, 3)
-    wait_15 = WebDriverWait(RR, 15)
+    wait_30 = WebDriverWait(RR, 30)
     wait_60 = WebDriverWait(RR, 60)
 
 
@@ -148,14 +148,14 @@ def get_info_kn(RR, kn, timeout_start):
         ## запускаем поиск
 
         ## нововведение от 22.02.23 - таймаут 5 секунд
-        wait_timeout(timeout_start, 5, "поиск")
+        wait_timeout(timeout_start, timeout, "поиск")
 
         search_button.click()
         t0 = monotonic()
 ##--------
         try:
             ## ждём появления блока спиннера
-            spinner = wait_15.until(
+            spinner = wait_30.until(
                 EC.presence_of_element_located(
                     (By.CSS_SELECTOR, "div.rros-ui-lib-spinner__wrapper")))
             ## ждём пропадания блока спиннера
@@ -187,7 +187,7 @@ def get_info_kn(RR, kn, timeout_start):
             By.CSS_SELECTOR, "div.rros-ui-lib-table__row")
 
         ## нововведение от 22.02.23 - таймаут 5 секунд от нажатия на кнопку поиска
-        wait_timeout(t0, 5, "сбор сведений")
+        wait_timeout(t0, timeout, "сбор сведений")
 
         data_rows[0].click()
 
